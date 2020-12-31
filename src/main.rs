@@ -1,3 +1,6 @@
+mod sweeper;
+
 fn main() {
-    println!("Hello, world!");
+    let board = sweeper::Board::new(4, 4);
+    println!("{:?}", board);
 }
