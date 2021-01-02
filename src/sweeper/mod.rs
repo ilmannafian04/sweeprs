@@ -2,25 +2,18 @@ use std::fmt;
 
 use rand::Rng;
 
+use cell::Cell;
+
+mod cell;
+
 pub const EASY_CONFIG: BoardConfig = BoardConfig {height: 9, width: 9, mine_count: 10};
 // pub const MED_CONFIG: BoardConfig = BoardConfig {height: 16, width: 16, mine_count: 40};
 // pub const HARD_CONFIG: BoardConfig = BoardConfig {height: 24, width: 24, mine_count: 99};
 
-#[derive(Clone)]
-enum Cell {
-    Mine,
-    Flag,
-    Empty,
-}
-
-impl fmt::Debug for Cell {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Cell::Empty => f.write_str("  "),
-            Cell::Flag => f.write_str("! "),
-            Cell::Mine => f.write_str("X "),
-        }
-    }
+pub struct BoardConfig {
+    height: usize,
+    width: usize,
+    mine_count: usize,
 }
 
 pub struct Board {
@@ -36,12 +29,6 @@ impl fmt::Debug for Board {
         }
         f.write_str(&debug_str)
     }
-}
-
-pub struct BoardConfig {
-    height: usize,
-    width: usize,
-    mine_count: usize,
 }
 
 impl Board {
