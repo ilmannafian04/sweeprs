@@ -2,7 +2,7 @@ use std::fmt;
 
 use rand::Rng;
 
-use cell::Cell;
+use cell::{Cell, CellKind};
 
 mod cell;
 
@@ -39,7 +39,16 @@ impl fmt::Debug for Board {
 impl Board {
     pub fn new(config: BoardConfig) -> Self {
         Board {
-            cells: vec![vec![Cell::Uninitialized; config.width]; config.height],
+            cells: vec![
+                vec![
+                    Cell {
+                        is_open: false,
+                        kind: CellKind::Uninitialized
+                    };
+                    config.width
+                ];
+                config.height
+            ],
             is_initiated: false,
             mine_count: config.mine_count,
         }
@@ -58,7 +67,7 @@ impl Board {
                 match self.cells.get_mut(x + i - 1) {
                     Some(row) => match row.get_mut(y + j - 1) {
                         Some(cell) => {
-                            *cell = Cell::Free;
+                            cell.kind = CellKind::Free;
                         }
                         _ => (),
                     },
@@ -66,34 +75,31 @@ impl Board {
                 }
             }
         }
-        println!("{:?}", self);
         // randomize mine placement
         let mut placed_mine = 0;
         let mut rng = rand::thread_rng();
         while placed_mine < self.mine_count {
             let i = rng.gen_range(0..self.get_height());
             let j = rng.gen_range(0..self.get_width());
-            match self.cells[i][j] {
-                Cell::Uninitialized => {
-                    self.cells[i][j] = Cell::Mine;
+            match self.cells[i][j].kind {
+                CellKind::Uninitialized => {
+                    self.cells[i][j].kind = CellKind::Mine;
                     placed_mine += 1;
                 }
                 _ => {}
             }
         }
-        println!("{:?}", self);
         // fill the rest of uninitialized cells with free cell
         for i in 0..self.get_height() {
             for j in 0..self.get_width() {
-                match self.cells[i][j] {
-                    Cell::Uninitialized => {
-                        self.cells[i][j] = Cell::Free;
+                match self.cells[i][j].kind {
+                    CellKind::Uninitialized => {
+                        self.cells[i][j].kind = CellKind::Free;
                     }
                     _ => (),
                 }
             }
         }
-        println!("{:?}", self);
         self.is_initiated = true;
     }
 
