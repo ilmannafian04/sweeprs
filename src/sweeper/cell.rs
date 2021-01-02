@@ -12,15 +12,19 @@ pub enum CellKind {
 pub struct Cell {
     pub kind: CellKind,
     pub is_open: bool,
+    pub mine_count: usize,
 }
 
 impl fmt::Debug for Cell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.kind {
-            CellKind::Free => f.write_str("  "),
-            CellKind::Flag => f.write_str("! "),
-            CellKind::Mine => f.write_str("X "),
-            CellKind::Uninitialized => f.write_str("/ "),
+        if !self.is_open {
+            f.write_str("O")
+        } else {
+            if self.mine_count == 0 {
+                f.write_str(" ")
+            } else {
+                f.write_str(&format!("{}", self.mine_count))
+            }
         }
     }
 }
