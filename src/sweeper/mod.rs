@@ -28,18 +28,14 @@ pub struct Board {
 
 impl Board {
     pub fn new(config: BoardConfig) -> Self {
+        let cell = Cell {
+            is_open: false,
+            kind: CellKind::Uninitialized,
+            mine_count: 0,
+            mine_counted: false,
+        };
         Board {
-            cells: vec![
-                vec![
-                    Cell {
-                        is_open: false,
-                        kind: CellKind::Uninitialized,
-                        mine_count: 0
-                    };
-                    config.width
-                ];
-                config.height
-            ],
+            cells: vec![vec![cell; config.width]; config.height],
             is_initiated: false,
             mine_count: config.mine_count,
         }
@@ -89,6 +85,7 @@ impl Board {
                 self.cells[x][y].is_open = true;
                 let neighbor_mines = self.count_neighbors_for_mine(x, y);
                 self.cells[x][y].mine_count = neighbor_mines;
+                self.cells[x][y].mine_counted = true;
                 if neighbor_mines == 0 {
                     Board::traverse_neighbors(x, y, |row: usize, col: usize| {
                         if self.cell_is_within_range(x + col - 1, y + row - 1) {
@@ -104,18 +101,22 @@ impl Board {
     }
 
     fn count_neighbors_for_mine(&self, x: usize, y: usize) -> usize {
-        let mut count = 0;
-        Board::traverse_neighbors(x, y, |row: usize, col: usize| {
-            if self.cell_is_within_range(x + col - 1, y + row - 1) {
-                match self.cells[x + col - 1][y + row - 1].kind {
-                    CellKind::Mine => {
-                        count += 1;
+        if self.cell_is_within_range(x, y) && self.cells[x][y].mine_counted {
+            self.cells[x][y].mine_count
+        } else {
+            let mut count = 0;
+            Board::traverse_neighbors(x, y, |row: usize, col: usize| {
+                if self.cell_is_within_range(x + col - 1, y + row - 1) {
+                    match self.cells[x + col - 1][y + row - 1].kind {
+                        CellKind::Mine => {
+                            count += 1;
+                        }
+                        _ => (),
                     }
-                    _ => (),
                 }
-            }
-        });
-        count
+            });
+            count
+        }
     }
 
     fn cell_is_within_range(&self, x: usize, y: usize) -> bool {
