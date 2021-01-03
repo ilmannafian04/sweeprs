@@ -26,22 +26,6 @@ pub struct Board {
     mine_count: usize,
 }
 
-macro_rules! traverse_neighbors {
-    ($x:ident, $y:ident, $closure:tt) => {
-        for i in 0..3 {
-            if $x + i == 0 {
-                continue;
-            }
-            for j in 0..3 {
-                if $y + j == 0 {
-                    continue;
-                }
-                $closure(i, j);
-            }
-        }
-    };
-}
-
 impl Board {
     pub fn new(config: BoardConfig) -> Self {
         Board {
@@ -63,15 +47,11 @@ impl Board {
 
     fn initialize(&mut self, x: usize, y: usize) -> () {
         // mark root and its neighbors as free
-        traverse_neighbors!(
-            x,
-            y,
-            (|i: usize, j: usize| {
-                if self.cell_is_within_range(x + i - 1, y + j - 1) {
-                    self.cells[x + i - 1][y + j - 1].kind = CellKind::Free
-                }
-            })
-        );
+        Board::traverse_neighbors(x, y, |i: usize, j: usize| {
+            if self.cell_is_within_range(x + i - 1, y + j - 1) {
+                self.cells[x + i - 1][y + j - 1].kind = CellKind::Free
+            }
+        });
         // randomize mine placement
         let mut placed_mine = 0;
         let mut rng = rand::thread_rng();
@@ -110,15 +90,11 @@ impl Board {
                 let neighbor_mines = self.count_neighbors_for_mine(x, y);
                 self.cells[x][y].mine_count = neighbor_mines;
                 if neighbor_mines == 0 {
-                    traverse_neighbors!(
-                        x,
-                        y,
-                        (|i: usize, j: usize| {
-                            if i <= self.get_height() - 1 && j <= self.get_width() - 1 {
-                                self.open(x + i - 1, y + j - 1);
-                            }
-                        })
-                    );
+                    Board::traverse_neighbors(x, y, |i: usize, j: usize| {
+                        if i <= self.get_height() - 1 && j <= self.get_width() - 1 {
+                            self.open(x + i - 1, y + j - 1);
+                        }
+                    })
                 }
             }
         }
@@ -126,20 +102,16 @@ impl Board {
 
     fn count_neighbors_for_mine(&self, x: usize, y: usize) -> usize {
         let mut count = 0;
-        traverse_neighbors!(
-            x,
-            y,
-            (|i: usize, j: usize| {
-                if self.cell_is_within_range(x + i - 1, y + j - 1) {
-                    match self.cells[x + i - 1][y + j - 1].kind {
-                        CellKind::Mine => {
-                            count += 1;
-                        }
-                        _ => (),
+        Board::traverse_neighbors(x, y, |i: usize, j: usize| {
+            if self.cell_is_within_range(x + i - 1, y + j - 1) {
+                match self.cells[x + i - 1][y + j - 1].kind {
+                    CellKind::Mine => {
+                        count += 1;
                     }
+                    _ => (),
                 }
-            })
-        );
+            }
+        });
         count
     }
 
@@ -159,6 +131,20 @@ impl Board {
 
     fn get_width(&self) -> usize {
         self.cells[0].len() + 1
+    }
+
+    fn traverse_neighbors<F: FnMut(usize, usize)>(x: usize, y: usize, mut f: F) {
+        for i in 0..3 {
+            if x + i == 0 {
+                continue;
+            }
+            for j in 0..3 {
+                if y + j == 0 {
+                    continue;
+                }
+                f(i, j);
+            }
+        }
     }
 }
 
