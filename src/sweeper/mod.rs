@@ -80,7 +80,7 @@ impl Board {
         self.is_initiated = true;
     }
 
-    pub fn open(&mut self, x: usize, y: usize) -> () {
+    pub fn open(&mut self, x: usize, y: usize) -> Option<CellKind> {
         if self.cell_is_within_range(x, y) {
             if !self.is_initiated {
                 self.initialize(x, y);
@@ -96,22 +96,25 @@ impl Board {
                         }
                     })
                 }
+                Some(self.cells[x][y].kind.clone());
             }
         }
+        None
     }
 
     fn count_neighbors_for_mine(&self, x: usize, y: usize) -> usize {
         let mut count = 0;
-        Board::traverse_neighbors(x, y, |i: usize, j: usize| {
-            if self.cell_is_within_range(x + i - 1, y + j - 1) {
+        if self.cell_is_within_range(x + i - 1, y + j - 1) {
+            if self.cells[x][y]
+            Board::traverse_neighbors(x, y, |i: usize, j: usize| {
                 match self.cells[x + i - 1][y + j - 1].kind {
                     CellKind::Mine => {
                         count += 1;
                     }
                     _ => (),
                 }
-            }
-        });
+            });
+        }
         count
     }
 
