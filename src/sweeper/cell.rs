@@ -13,7 +13,7 @@ pub struct Cell {
     pub kind: CellKind,
     pub is_open: bool,
     pub mine_count: usize,
-    pub mine_counted: bool,
+    pub mine_is_counted: bool,
 }
 
 impl fmt::Debug for Cell {

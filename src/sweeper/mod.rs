@@ -14,6 +14,11 @@ pub const EASY_CONFIG: BoardConfig = BoardConfig {
 // pub const MED_CONFIG: BoardConfig = BoardConfig {height: 16, width: 16, mine_count: 40};
 // pub const HARD_CONFIG: BoardConfig = BoardConfig {height: 24, width: 24, mine_count: 99};
 
+#[derive(Debug)]
+pub enum ErrorKind {
+    CellOutOfBound,
+}
+
 pub struct BoardConfig {
     height: usize,
     width: usize,
@@ -32,7 +37,7 @@ impl Board {
             is_open: false,
             kind: CellKind::Uninitialized,
             mine_count: 0,
-            mine_counted: false,
+            mine_is_counted: false,
         };
         Board {
             cells: vec![vec![cell; config.width]; config.height],
@@ -43,9 +48,11 @@ impl Board {
 
     fn initialize(&mut self, x: usize, y: usize) -> () {
         // mark root and its neighbors as free
-        Board::traverse_neighbors(x, y, |row: usize, col: usize| {
-            if self.cell_is_within_range(x + col - 1, y + row - 1) {
-                self.cells[x + col - 1][y + row - 1].kind = CellKind::Free
+        self.cells[x][y].kind = CellKind::Free;
+        Board::traverse_neighbors(x, y, |x_shift, y_shift: usize| {
+            match self.get_mut_cell(x + x_shift - 1, y + y_shift - 1) {
+                Some(cell) => cell.kind = CellKind::Free,
+                _ => (),
             }
         });
         // randomize mine placement
@@ -76,43 +83,45 @@ impl Board {
         self.is_initiated = true;
     }
 
-    pub fn open(&mut self, x: usize, y: usize) -> Option<CellKind> {
-        if self.cell_is_within_range(x, y) {
+    pub fn open(&mut self, x: usize, y: usize) -> Result<CellKind, ErrorKind> {
+        if self.cell_is_within_range(x, y) && !self.cells[x][y].is_open {
             if !self.is_initiated {
                 self.initialize(x, y);
             }
-            if !self.cells[x][y].is_open {
-                self.cells[x][y].is_open = true;
-                let neighbor_mines = self.count_neighbors_for_mine(x, y);
-                self.cells[x][y].mine_count = neighbor_mines;
-                self.cells[x][y].mine_counted = true;
-                if neighbor_mines == 0 {
-                    Board::traverse_neighbors(x, y, |row: usize, col: usize| {
-                        if self.cell_is_within_range(x + col - 1, y + row - 1) {
-                            self.open(x + col - 1, y + row - 1);
+            let count = self.count_mine_in_neighbors(x, y);
+            let cell = &mut self.cells[x][y];
+            if !cell.is_open {
+                cell.is_open = true;
+                cell.mine_count = count;
+                cell.mine_is_counted = true;
+                if count == 0 {
+                    Board::traverse_neighbors(x, y, |x_shift, y_shift| {
+                        if self.cell_is_within_range(x + x_shift - 1, y + y_shift - 1) {
+                            self.open(x + x_shift - 1, y + y_shift - 1).ok();
                         }
                     })
                 }
             }
-            Some(self.cells[x][y].kind.clone())
+            Ok(self.cells[x][y].kind.clone())
         } else {
-            None
+            Err(ErrorKind::CellOutOfBound)
         }
     }
 
-    fn count_neighbors_for_mine(&self, x: usize, y: usize) -> usize {
-        if self.cell_is_within_range(x, y) && self.cells[x][y].mine_counted {
+    // pub fn flag(&mut self, x: usize, y: usize) -> bool {}
+
+    fn count_mine_in_neighbors(&self, x: usize, y: usize) -> usize {
+        if self.cells[x][y].mine_is_counted {
             self.cells[x][y].mine_count
         } else {
             let mut count = 0;
-            Board::traverse_neighbors(x, y, |row: usize, col: usize| {
-                if self.cell_is_within_range(x + col - 1, y + row - 1) {
-                    match self.cells[x + col - 1][y + row - 1].kind {
-                        CellKind::Mine => {
-                            count += 1;
-                        }
+            Board::traverse_neighbors(x, y, |x_shift, y_shift| {
+                match self.get_cell(x + x_shift - 1, y + y_shift - 1) {
+                    Some(cell) => match cell.kind {
+                        CellKind::Mine => count += 1,
                         _ => (),
-                    }
+                    },
+                    _ => (),
                 }
             });
             count
@@ -129,6 +138,14 @@ impl Board {
         true
     }
 
+    fn get_cell(&self, x: usize, y: usize) -> Option<&Cell> {
+        self.cells.get(y).and_then(|row| row.get(x))
+    }
+
+    fn get_mut_cell(&mut self, x: usize, y: usize) -> Option<&mut Cell> {
+        self.cells.get_mut(y).and_then(|row| row.get_mut(x))
+    }
+
     fn get_height(&self) -> usize {
         self.cells.len() + 1
     }
@@ -138,15 +155,15 @@ impl Board {
     }
 
     fn traverse_neighbors<F: FnMut(usize, usize)>(x: usize, y: usize, mut f: F) {
-        for row in 0..3 {
-            if y + row == 0 {
+        for y_shift in 0..3 {
+            if y + y_shift == 0 {
                 continue;
             }
-            for col in 0..3 {
-                if x + col == 0 {
+            for x_shift in 0..3 {
+                if x + x_shift == 0 || (x_shift == 1 && y_shift == 1) {
                     continue;
                 }
-                f(row, col);
+                f(x_shift, y_shift);
             }
         }
     }
