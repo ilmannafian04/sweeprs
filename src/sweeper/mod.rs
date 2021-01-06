@@ -3,8 +3,10 @@ use std::fmt;
 use rand::Rng;
 
 use cell::{Cell, CellKind};
+use error::Error;
 
 mod cell;
+mod error;
 
 pub const EASY_CONFIG: BoardConfig = BoardConfig {
     height: 9,
@@ -13,11 +15,6 @@ pub const EASY_CONFIG: BoardConfig = BoardConfig {
 };
 // pub const MED_CONFIG: BoardConfig = BoardConfig {height: 16, width: 16, mine_count: 40};
 // pub const HARD_CONFIG: BoardConfig = BoardConfig {height: 24, width: 24, mine_count: 99};
-
-#[derive(Debug)]
-pub enum ErrorKind {
-    CellOutOfBound,
-}
 
 pub struct BoardConfig {
     height: usize,
@@ -46,7 +43,7 @@ impl Board {
         }
     }
 
-    pub fn open(&mut self, x: usize, y: usize) -> Result<CellKind, ErrorKind> {
+    pub fn open(&mut self, x: usize, y: usize) -> Result<CellKind, Error> {
         if self.cell_is_within_range(x, y) && !self.cells[x][y].is_open {
             if !self.is_initiated {
                 self.initialize(x, y);
@@ -65,11 +62,17 @@ impl Board {
             }
             Ok(self.cells[x][y].kind.clone())
         } else {
-            Err(ErrorKind::CellOutOfBound)
+            Err(Error::CellOutOfBound)
         }
     }
 
-    // pub fn flag(&mut self, x: usize, y: usize) -> bool {}
+    pub fn flag(&mut self, x: usize, y: usize) -> Result<bool, Error> {
+        if self.cell_is_within_range(x, y) {
+            Ok(true)
+        } else {
+            Err(Error::CellOutOfBound)
+        }
+    }
 
     fn initialize(&mut self, x: usize, y: usize) -> () {
         // mark root and its neighbors as free
