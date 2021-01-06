@@ -46,6 +46,31 @@ impl Board {
         }
     }
 
+    pub fn open(&mut self, x: usize, y: usize) -> Result<CellKind, ErrorKind> {
+        if self.cell_is_within_range(x, y) && !self.cells[x][y].is_open {
+            if !self.is_initiated {
+                self.initialize(x, y);
+            }
+            let count = self.count_mine_in_neighbors(x, y);
+            let cell = &mut self.cells[x][y];
+            if !cell.is_open {
+                cell.is_open = true;
+                cell.mine_count = count;
+                cell.mine_is_counted = true;
+                if count == 0 {
+                    Board::traverse_neighbors(x, y, |x_shift, y_shift| {
+                        self.open(x + x_shift - 1, y + y_shift - 1).ok();
+                    })
+                }
+            }
+            Ok(self.cells[x][y].kind.clone())
+        } else {
+            Err(ErrorKind::CellOutOfBound)
+        }
+    }
+
+    // pub fn flag(&mut self, x: usize, y: usize) -> bool {}
+
     fn initialize(&mut self, x: usize, y: usize) -> () {
         // mark root and its neighbors as free
         self.cells[x][y].kind = CellKind::Free;
@@ -82,33 +107,6 @@ impl Board {
         }
         self.is_initiated = true;
     }
-
-    pub fn open(&mut self, x: usize, y: usize) -> Result<CellKind, ErrorKind> {
-        if self.cell_is_within_range(x, y) && !self.cells[x][y].is_open {
-            if !self.is_initiated {
-                self.initialize(x, y);
-            }
-            let count = self.count_mine_in_neighbors(x, y);
-            let cell = &mut self.cells[x][y];
-            if !cell.is_open {
-                cell.is_open = true;
-                cell.mine_count = count;
-                cell.mine_is_counted = true;
-                if count == 0 {
-                    Board::traverse_neighbors(x, y, |x_shift, y_shift| {
-                        if self.cell_is_within_range(x + x_shift - 1, y + y_shift - 1) {
-                            self.open(x + x_shift - 1, y + y_shift - 1).ok();
-                        }
-                    })
-                }
-            }
-            Ok(self.cells[x][y].kind.clone())
-        } else {
-            Err(ErrorKind::CellOutOfBound)
-        }
-    }
-
-    // pub fn flag(&mut self, x: usize, y: usize) -> bool {}
 
     fn count_mine_in_neighbors(&self, x: usize, y: usize) -> usize {
         if self.cells[x][y].mine_is_counted {
