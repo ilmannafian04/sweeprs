@@ -70,11 +70,21 @@ impl Board {
         }
     }
 
-    pub fn flag(&mut self, i: usize, j: usize) -> Result<bool, Error> {
+    pub fn flag(&mut self, i: usize, j: usize) -> Option<Result<CellState, Error>> {
         if self.cell_is_within_range(i, j) {
-            Ok(true)
+            match self.cells[i][j].state {
+                CellState::Closed => {
+                    self.cells[i][j].state = CellState::Flagged;
+                    Some(Ok(CellState::Flagged))
+                }
+                CellState::Flagged => {
+                    self.cells[i][j].state = CellState::Closed;
+                    Some(Ok(CellState::Closed))
+                }
+                _ => None,
+            }
         } else {
-            Err(Error::CellOutOfBound)
+            Some(Err(Error::CellOutOfBound))
         }
     }
 
