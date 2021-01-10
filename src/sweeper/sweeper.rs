@@ -26,17 +26,21 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(config: BoardConfig) -> Self {
-        let cell = Cell {
-            kind: CellKind::Uninitialized,
-            state: CellState::Closed,
-            mine_count: 0,
-            mine_is_counted: false,
-        };
-        Board {
-            cells: vec![vec![cell; config.width]; config.height],
-            is_initiated: false,
-            mine_count: config.mine_count,
+    pub fn new(config: BoardConfig) -> Result<Self, Error> {
+        if config.height < 9 || config.width < 9 {
+            Err(Error::InvalidConfig)
+        } else {
+            let cell = Cell {
+                kind: CellKind::Uninitialized,
+                state: CellState::Closed,
+                mine_count: 0,
+                mine_is_counted: false,
+            };
+            Ok(Board {
+                cells: vec![vec![cell; config.width]; config.height],
+                is_initiated: false,
+                mine_count: config.mine_count,
+            })
         }
     }
 
