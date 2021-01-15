@@ -27,9 +27,18 @@ pub struct BoardConfig {
     pub mine_count: usize,
 }
 
+#[derive(Clone, Debug)]
+pub enum SweeperState {
+    Uninitialized,
+    Playing,
+    Lost,
+    Win,
+}
+
 pub struct Sweeper {
     board: Vec<Vec<Cell>>,
-    is_initiated: bool,
+    state: SweeperState,
+    closed_cell: usize,
     mine_count: usize,
 }
 
@@ -46,7 +55,8 @@ impl Sweeper {
             };
             Ok(Sweeper {
                 board: vec![vec![cell; config.width]; config.height],
-                is_initiated: false,
+                state: SweeperState::Uninitialized,
+                closed_cell: config.width * config.height,
                 mine_count: config.mine_count,
             })
         }
@@ -55,18 +65,29 @@ impl Sweeper {
     pub fn open(&mut self, i: usize, j: usize) -> Option<CellKind> {
         match self.board[i][j].state {
             CellState::Closed => {
-                if !self.is_initiated {
-                    self.initialize(i, j);
+                match self.state {
+                    SweeperState::Uninitialized => self.initialize(i, j),
+                    _ => (),
                 }
-                let count = self.count_mine_in_neighbors(i, j);
-                let cell = &mut self.board[i][j];
-                cell.state = CellState::Open;
-                cell.mine_count = count;
-                cell.mine_is_counted = true;
-                if count == 0 {
-                    for (nbr_i, nbr_j) in self.get_neighbor_index(i, j) {
-                        self.open(nbr_i, nbr_j);
+                match self.board[i][j].kind {
+                    CellKind::Free => {
+                        let count = self.count_mine_in_neighbors(i, j);
+                        let cell = &mut self.board[i][j];
+                        cell.state = CellState::Open;
+                        cell.mine_count = count;
+                        cell.mine_is_counted = true;
+                        if count == 0 {
+                            for (nbr_i, nbr_j) in self.get_neighbor_index(i, j) {
+                                self.open(nbr_i, nbr_j);
+                            }
+                        }
+                        self.closed_cell -= 1;
+                        if self.closed_cell <= self.mine_count {
+                            self.state = SweeperState::Win;
+                        }
                     }
+                    CellKind::Mine => self.state = SweeperState::Lost,
+                    _ => (),
                 }
                 Some(self.board[i][j].kind.clone())
             }
@@ -86,6 +107,10 @@ impl Sweeper {
             }
             _ => None,
         }
+    }
+
+    pub fn game_state(&self) -> SweeperState {
+        self.state.clone()
     }
 
     fn initialize(&mut self, i: usize, j: usize) -> () {
@@ -119,7 +144,7 @@ impl Sweeper {
                 }
             }
         }
-        self.is_initiated = true;
+        self.state = SweeperState::Playing;
     }
 
     fn count_mine_in_neighbors(&self, i: usize, j: usize) -> usize {

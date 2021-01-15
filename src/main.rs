@@ -66,9 +66,9 @@ fn main() {
     match Sweeper::new(config) {
         Ok(mut board) => {
             board.open(4, 4);
-            println!("{:?}", board);
+            println!("{:?}{:?}", board, board.game_state());
             board.flag(0, 0);
-            println!("{:?}", board);
+            println!("{:?}{:?}", board, board.game_state());
         }
         _ => println!("error: invalid board configuration"),
     }
