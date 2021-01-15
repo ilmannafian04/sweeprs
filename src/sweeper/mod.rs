@@ -1,4 +1,5 @@
 mod cell;
+mod constant;
 mod error;
 mod sweeper;
 
