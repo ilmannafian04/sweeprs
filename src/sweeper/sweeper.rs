@@ -10,13 +10,21 @@ pub const EASY_CONFIG: BoardConfig = BoardConfig {
     width: 9,
     mine_count: 10,
 };
-// pub const MED_CONFIG: BoardConfig = BoardConfig {height: 16, width: 16, mine_count: 40};
-// pub const HARD_CONFIG: BoardConfig = BoardConfig {height: 24, width: 24, mine_count: 99};
+pub const MED_CONFIG: BoardConfig = BoardConfig {
+    height: 16,
+    width: 16,
+    mine_count: 40,
+};
+pub const HARD_CONFIG: BoardConfig = BoardConfig {
+    height: 24,
+    width: 24,
+    mine_count: 99,
+};
 
 pub struct BoardConfig {
-    height: usize,
-    width: usize,
-    mine_count: usize,
+    pub height: usize,
+    pub width: usize,
+    pub mine_count: usize,
 }
 
 pub struct Board {
