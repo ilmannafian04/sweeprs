@@ -71,13 +71,13 @@ impl Sweeper {
                 }
                 match self.board[i][j].kind {
                     CellKind::Free => {
-                        let count = self.count_mine_in_neighbors(i, j);
+                        let count = self.count_mine_in_nbrs(i, j);
                         let cell = &mut self.board[i][j];
                         cell.state = CellState::Open;
                         cell.mine_count = count;
                         cell.mine_is_counted = true;
                         if count == 0 {
-                            for (nbr_i, nbr_j) in self.get_neighbor_index(i, j) {
+                            for (nbr_i, nbr_j) in self.get_nbr_indices(i, j) {
                                 self.open(nbr_i, nbr_j);
                             }
                         }
@@ -116,7 +116,7 @@ impl Sweeper {
     fn initialize(&mut self, i: usize, j: usize) -> () {
         // mark root and its neighbors as free
         self.board[i][j].kind = CellKind::Free;
-        for (nbr_i, nbr_j) in self.get_neighbor_index(i, j) {
+        for (nbr_i, nbr_j) in self.get_nbr_indices(i, j) {
             self.board[nbr_i][nbr_j].kind = CellKind::Free;
         }
         // randomize mine placement
@@ -147,12 +147,12 @@ impl Sweeper {
         self.state = SweeperState::Playing;
     }
 
-    fn count_mine_in_neighbors(&self, i: usize, j: usize) -> usize {
+    fn count_mine_in_nbrs(&self, i: usize, j: usize) -> usize {
         if self.board[i][j].mine_is_counted {
             self.board[i][j].mine_count
         } else {
             let mut count = 0;
-            for (nbr_i, nbr_j) in self.get_neighbor_index(i, j) {
+            for (nbr_i, nbr_j) in self.get_nbr_indices(i, j) {
                 match self.board[nbr_i][nbr_j].kind {
                     CellKind::Mine => count += 1,
                     _ => (),
@@ -162,7 +162,7 @@ impl Sweeper {
         }
     }
 
-    fn get_neighbor_index(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
+    fn get_nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
         let mut res = Vec::new();
         for i_shift in 0..3 {
             if i + i_shift == 0 || i + i_shift - 1 >= self.get_height() {
