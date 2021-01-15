@@ -1,5 +1,5 @@
 use clap::{App, Arg, ArgGroup};
-use sweeper::{Board, BoardConfig};
+use sweeper::{BoardConfig, Sweeper};
 
 mod sweeper;
 
@@ -63,13 +63,13 @@ fn main() {
     } else {
         sweeper::EASY_CONFIG
     };
-    match Board::new(config) {
+    match Sweeper::new(config) {
         Ok(mut board) => {
             board.open(4, 4);
             println!("{:?}", board);
             board.flag(0, 0);
             println!("{:?}", board);
         }
-        _ => (),
+        _ => println!("error: invalid board configuration"),
     }
 }
