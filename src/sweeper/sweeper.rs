@@ -72,7 +72,10 @@ impl Sweeper {
                             self.state = SweeperState::Win;
                         }
                     }
-                    CellKind::Mine => self.state = SweeperState::Lost,
+                    CellKind::Mine => {
+                        self.state = SweeperState::Lost;
+                        self.open_all_cell();
+                    }
                     _ => (),
                 }
                 Some(self.board[i][j].kind.clone())
@@ -98,6 +101,8 @@ impl Sweeper {
     pub fn game_state(&self) -> SweeperState {
         self.state.clone()
     }
+
+    fn open_all_cell(&mut self) {}
 
     fn initialize(&mut self, i: usize, j: usize) -> () {
         // mark root and its neighbors as free

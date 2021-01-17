@@ -64,12 +64,25 @@ fn main() {
         sweeper::EASY_CONFIG
     };
     match Sweeper::new(config) {
-        Ok(mut board) => {
-            board.open(4, 4);
+        Ok(mut board) => loop {
+            let mut buffer = String::new();
+            std::io::stdin().read_line(&mut buffer).ok();
+            let command: Vec<String> = buffer.trim().split(" ").map(|x| x.to_string()).collect();
+            match command[0].as_str() {
+                "o" | "open" => {
+                    if command.len() < 3 {
+                        println!("error: \"open\" require two argument WIDTH and HEIGHT. (0, 0) is top left most cell");
+                        continue;
+                    }
+                    let i = command[1].parse::<usize>().unwrap();
+                    let j = command[2].parse::<usize>().unwrap();
+                    board.open(i, j);
+                }
+                "q" => break,
+                _ => println!("error: unknown command, type \"q\" to quit."),
+            }
             println!("{:?}{:?}", board, board.game_state());
-            board.flag(0, 0);
-            println!("{:?}{:?}", board, board.game_state());
-        }
-        _ => println!("error: invalid board configuration"),
+        },
+        Err(e) => println!("error: {}", e),
     }
 }
