@@ -70,7 +70,7 @@ fn main() {
                 let mut buffer = String::new();
                 std::io::stdin().read_line(&mut buffer).ok();
                 let command: Vec<String> =
-                    buffer.trim().split(" ").map(|x| x.to_string()).collect();
+                    buffer.trim().split(' ').map(|x| x.to_string()).collect();
                 match command[0].as_str() {
                     "o" | "open" => {
                         if command.len() < 3 {
