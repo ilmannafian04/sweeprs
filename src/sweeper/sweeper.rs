@@ -102,7 +102,24 @@ impl Sweeper {
         self.state.clone()
     }
 
-    fn open_all_cell(&mut self) {}
+    fn open_all_cell(&mut self) {
+        for i in 0..self.get_height() {
+            for j in 0..self.get_width() {
+                match self.board[i][j].state {
+                    CellState::Closed => {
+                        self.board[i][j].state = CellState::Open;
+                        if !self.board[i][j].mine_is_counted {
+                            let count = self.count_mine_in_nbrs(i, j);
+                            self.board[i][j].mine_count = count;
+                            self.board[i][j].mine_is_counted = true;
+                        }
+                        self.closed_cell -= 1;
+                    }
+                    _ => (),
+                }
+            }
+        }
+    }
 
     fn initialize(&mut self, i: usize, j: usize) -> () {
         // mark root and its neighbors as free

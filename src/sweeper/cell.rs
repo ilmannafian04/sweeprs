@@ -24,18 +24,20 @@ pub struct Cell {
 
 impl fmt::Debug for Cell {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.mine_is_counted && self.mine_count > 0 {
-            f.write_str(&format!("{}", self.mine_count))
-        } else {
-            match self.state {
-                CellState::Closed => f.write_str("O"),
-                CellState::Flagged => f.write_str("F"),
-                CellState::Open => match self.kind {
-                    CellKind::Mine => f.write_str("X"),
-                    CellKind::Free => f.write_str(" "),
-                    CellKind::Uninitialized => f.write_str("/"),
-                },
-            }
+        match self.state {
+            CellState::Closed => f.write_str("O"),
+            CellState::Flagged => f.write_str("F"),
+            CellState::Open => match self.kind {
+                CellKind::Mine => f.write_str("X"),
+                CellKind::Free => {
+                    if self.mine_is_counted && self.mine_count > 0 {
+                        f.write_str(&format!("{}", self.mine_count))
+                    } else {
+                        f.write_str(" ")
+                    }
+                }
+                CellKind::Uninitialized => f.write_str("/"),
+            },
         }
     }
 }
