@@ -182,11 +182,11 @@ impl Sweeper {
         res
     }
 
-    fn get_height(&self) -> usize {
+    pub fn get_height(&self) -> usize {
         self.board.len()
     }
 
-    fn get_width(&self) -> usize {
+    pub fn get_width(&self) -> usize {
         self.board[0].len()
     }
 }

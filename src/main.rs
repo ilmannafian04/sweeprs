@@ -1,10 +1,13 @@
-use clap::{App, Arg, ArgGroup};
+use clap::{Arg, ArgGroup};
+
+use app::App;
 use sweeper::{BoardConfig, Sweeper};
 
+mod app;
 mod sweeper;
 
 fn main() {
-    let matches = App::new("sweeprs")
+    let matches = clap::App::new("sweeprs")
         .version("0.1.0")
         .about("lol")
         .author("M. Ilman Nafian <milmannafian04@gmail.com>")
@@ -64,28 +67,8 @@ fn main() {
         sweeper::EASY_CONFIG
     };
     match Sweeper::new(config) {
-        Ok(mut board) => {
-            println!("{:?}", board);
-            loop {
-                let mut buffer = String::new();
-                std::io::stdin().read_line(&mut buffer).ok();
-                let command: Vec<String> =
-                    buffer.trim().split(' ').map(|x| x.to_string()).collect();
-                match command[0].as_str() {
-                    "o" | "open" => {
-                        if command.len() < 3 {
-                            println!("error: \"open\" require two argument WIDTH and HEIGHT. (0, 0) is top left most cell");
-                            continue;
-                        }
-                        let i = command[1].parse::<usize>().unwrap();
-                        let j = command[2].parse::<usize>().unwrap();
-                        board.open(i, j);
-                    }
-                    "q" => break,
-                    _ => println!("error: unknown command, type \"q\" to quit."),
-                }
-                println!("{:?}{:?}\n", board, board.game_state());
-            }
+        Ok(board) => {
+            App::new(board).run().ok();
         }
         Err(e) => println!("error: {}", e),
     }
