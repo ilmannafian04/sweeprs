@@ -1,10 +1,13 @@
 use std::io::stdout;
 use std::ops::{AddAssign, SubAssign};
 
-use crossterm::event::KeyCode::{Char, Down, Left, Right, Up};
 use crossterm::event::{read, Event::Key};
 use crossterm::terminal::{Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::{cursor::Hide, execute, Result};
+use crossterm::{
+    event::KeyCode::{Char, Down, Left, Right, Up},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
 
 use crate::sweeper::Sweeper;
 
@@ -54,6 +57,7 @@ impl App {
     }
 
     pub fn run(&mut self) -> Result<()> {
+        enable_raw_mode().ok();
         execute!(stdout(), EnterAlternateScreen, Hide)?;
         loop {
             match read() {
@@ -84,9 +88,14 @@ impl App {
                         )
                     }
                 }
-                Err(e) => panic!("{}", e),
+                Err(e) => {
+                    disable_raw_mode().ok();
+                    execute!(stdout(), LeaveAlternateScreen)?;
+                    panic!("{}", e)
+                }
             }
         }
+        disable_raw_mode().ok();
         execute!(stdout(), LeaveAlternateScreen)?;
         Ok(())
     }
