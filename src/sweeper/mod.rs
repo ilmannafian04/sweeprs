@@ -189,6 +189,10 @@ impl Sweeper {
     pub fn get_width(&self) -> usize {
         self.board[0].len()
     }
+
+    pub fn get_board(&self) -> &Vec<Vec<Cell>> {
+        &self.board
+    }
 }
 
 impl fmt::Debug for Sweeper {

@@ -1,3 +1,5 @@
+use std::io::{stdout, BufWriter};
+
 use clap::{Arg, ArgGroup};
 
 use app::App;
@@ -68,7 +70,8 @@ fn main() {
     };
     match Sweeper::new(config) {
         Ok(board) => {
-            App::new(board).run().ok();
+            let mut stdout = BufWriter::new(stdout());
+            App::new(board, &mut stdout).run().ok();
         }
         Err(e) => println!("error: {}", e),
     }
