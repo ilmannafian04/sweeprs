@@ -1,5 +1,5 @@
-mod cell;
-mod error;
+pub mod cell;
+pub mod error;
 mod sweeper;
 
 pub use sweeper::{Sweeper, SweeperConfig};

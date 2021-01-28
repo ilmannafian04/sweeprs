@@ -11,11 +11,12 @@ use crossterm::{
         Event::Key,
         KeyCode::{Char, Down, Left, Right, Up},
     },
-    queue,
+    style::Print,
     terminal::{disable_raw_mode, enable_raw_mode},
+    ExecutableCommand, QueueableCommand,
 };
 
-use sweeprs::{Sweeper, SweeperConfig, EASY_CONFIG, HARD_CONFIG, MED_CONFIG};
+use sweeprs::{cell::CellState, Sweeper, SweeperConfig, EASY_CONFIG, HARD_CONFIG, MED_CONFIG};
 
 fn main() {
     let matches = clap::App::new("sweeprs")
@@ -136,13 +137,11 @@ impl<'a> Game<'a> {
     }
 
     fn run(&mut self) -> crossterm::Result<()> {
-        queue!(self.w, cursor::Hide,)?;
+        self.w.execute(cursor::Hide)?;
         enable_raw_mode()?;
-        self.w.flush()?;
         self.draw()?;
 
         loop {
-            print!("{:?}\n\r", cursor::position());
             match read() {
                 Ok(event) => {
                     if let Key(ke) = event {
@@ -174,14 +173,33 @@ impl<'a> Game<'a> {
     }
 
     fn draw(&mut self) -> crossterm::Result<()> {
-        print!("\n\r");
+        self.w.queue(Print(format!(
+            "┌{}┐\n\r",
+            "─".repeat(self.sweeper.get_width())
+        )))?;
+        for row in self.sweeper.get_board() {
+            self.w.queue(Print("│"))?;
+            for cell in row {
+                match cell.state {
+                    CellState::Closed => {
+                        self.w.queue(Print("█"))?;
+                    }
+                    _ => {
+                        self.w.queue(Print("█"))?;
+                    }
+                }
+            }
+            self.w.queue(Print("│\n\r"))?;
+        }
+        self.w
+            .queue(Print(format!("└{}┘", "─".repeat(self.sweeper.get_width()))))?;
+        self.w.flush()?;
         Ok(())
     }
 
     fn tear_down(&mut self) -> crossterm::Result<()> {
         disable_raw_mode()?;
-        queue!(self.w, cursor::Show)?;
-        self.w.flush()?;
+        self.w.execute(cursor::Show)?;
         Ok(())
     }
 }
