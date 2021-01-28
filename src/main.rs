@@ -6,6 +6,9 @@ use app::App;
 use sweeper::{BoardConfig, Sweeper};
 
 mod app;
+mod cell;
+mod constant;
+mod error;
 mod sweeper;
 
 fn main() {
@@ -51,9 +54,9 @@ fn main() {
         .group(ArgGroup::with_name("difficulty").args(&["easy", "medium", "hard", "custom"]))
         .get_matches();
     let config = if matches.is_present("medium") {
-        sweeper::MED_CONFIG
+        constant::MED_CONFIG
     } else if matches.is_present("hard") {
-        sweeper::HARD_CONFIG
+        constant::HARD_CONFIG
     } else if matches.is_present("custom") {
         let args: Vec<usize> = matches
             .values_of("custom")
@@ -66,7 +69,7 @@ fn main() {
             mine_count: args[2],
         }
     } else {
-        sweeper::EASY_CONFIG
+        constant::EASY_CONFIG
     };
     match Sweeper::new(config) {
         Ok(board) => {

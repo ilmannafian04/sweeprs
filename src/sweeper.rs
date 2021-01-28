@@ -1,15 +1,9 @@
-mod cell;
-mod constant;
-mod error;
-
 use std::fmt;
 
 use rand::Rng;
 
-use crate::sweeper::cell::{Cell, CellKind, CellState};
-use crate::sweeper::error::Error;
-
-pub use crate::sweeper::constant::*;
+use crate::cell::{Cell, CellKind, CellState};
+use crate::error::Error;
 
 pub struct BoardConfig {
     pub height: usize,
