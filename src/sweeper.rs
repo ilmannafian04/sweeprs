@@ -5,7 +5,7 @@ use rand::Rng;
 use crate::cell::{Cell, CellKind, CellState};
 use crate::error::Error;
 
-pub struct BoardConfig {
+pub struct SweeperConfig {
     pub height: usize,
     pub width: usize,
     pub mine_count: usize,
@@ -27,7 +27,7 @@ pub struct Sweeper {
 }
 
 impl Sweeper {
-    pub fn new(config: BoardConfig) -> Result<Self, Error> {
+    pub fn new(config: SweeperConfig) -> Result<Self, Error> {
         if config.height < 9 || config.width < 9 {
             Err(Error::InvalidConfig)
         } else {
