@@ -34,6 +34,13 @@ OPTIONS:
 
 ```
 
+## Docker
+
+```shell
+docker pull ilmannafian/sweeprs
+docker run -it --rm ilmannafian/sweeprs
+```
+
 ## License
 
 This project is licensed under the [MIT License](./LICENSE).
