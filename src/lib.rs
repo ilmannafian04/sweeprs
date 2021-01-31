@@ -2,7 +2,7 @@ pub mod cell;
 pub mod error;
 mod sweeper;
 
-pub use sweeper::{Sweeper, SweeperConfig};
+pub use sweeper::{Sweeper, SweeperConfig, SweeperState};
 
 pub const EASY_CONFIG: SweeperConfig = SweeperConfig {
     height: 9,

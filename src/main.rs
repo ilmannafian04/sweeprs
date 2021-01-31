@@ -11,12 +11,16 @@ use crossterm::{
         Event::Key,
         KeyCode::{Char, Down, Left, Right, Up},
     },
-    style::Print,
-    terminal::{disable_raw_mode, enable_raw_mode},
-    ExecutableCommand, QueueableCommand,
+    execute, queue,
+    style::{Color, Print, ResetColor, SetBackgroundColor, SetForegroundColor},
+    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    QueueableCommand,
 };
 
-use sweeprs::{cell::CellState, Sweeper, SweeperConfig, EASY_CONFIG, HARD_CONFIG, MED_CONFIG};
+use sweeprs::{
+    cell::{CellKind, CellState},
+    Sweeper, SweeperConfig, SweeperState, EASY_CONFIG, HARD_CONFIG, MED_CONFIG,
+};
 
 fn main() {
     let matches = clap::App::new("sweeprs")
@@ -137,7 +141,7 @@ impl<'a> Game<'a> {
     }
 
     fn run(&mut self) -> crossterm::Result<()> {
-        self.w.execute(cursor::Hide)?;
+        execute!(self.w, cursor::Hide, EnterAlternateScreen)?;
         enable_raw_mode()?;
         self.draw()?;
 
@@ -166,40 +170,64 @@ impl<'a> Game<'a> {
                     panic!("{}", e)
                 }
             }
+            self.draw()?;
         }
 
         self.tear_down()?;
+        self.draw()?;
         Ok(())
     }
 
     fn draw(&mut self) -> crossterm::Result<()> {
         self.w.queue(Print(format!(
             "┌{}┐\n\r",
-            "─".repeat(self.sweeper.get_width())
+            "─".repeat(self.sweeper.get_width() * 2 + 1)
         )))?;
-        for row in self.sweeper.get_board() {
-            self.w.queue(Print("│"))?;
-            for cell in row {
-                match cell.state {
-                    CellState::Closed => {
-                        self.w.queue(Print("█"))?;
+        for (i_idx, row) in self.sweeper.get_board().iter().enumerate() {
+            self.w.queue(Print("│ "))?;
+            for (j_idx, cell) in row.iter().enumerate() {
+                let cell_char = match cell.state {
+                    CellState::Closed => "█".to_owned(),
+                    CellState::Flagged => "▒".to_owned(),
+                    CellState::Open => match cell.kind {
+                        CellKind::Uninitialized => "█".to_owned(),
+                        CellKind::Mine => "●".to_owned(),
+                        CellKind::Free => {
+                            if !cell.mine_is_counted || cell.mine_count == 0 {
+                                " ".to_owned()
+                            } else {
+                                cell.mine_count.to_string()
+                            }
+                        }
+                    },
+                };
+                if i_idx == self.i.index && j_idx == self.j.index {
+                    if cell_char == " " {
+                        self.w.queue(SetBackgroundColor(Color::Red))?;
+                    } else {
+                        self.w.queue(SetForegroundColor(Color::Red))?;
                     }
-                    _ => {
-                        self.w.queue(Print("█"))?;
-                    }
+                    queue!(self.w, Print(cell_char), ResetColor,)?;
+                } else {
+                    self.w.queue(Print(cell_char))?;
+                }
+                if j_idx < row.len() - 1 {
+                    self.w.queue(Print(" "))?;
                 }
             }
-            self.w.queue(Print("│\n\r"))?;
+            self.w.queue(Print(" │\n\r"))?;
         }
-        self.w
-            .queue(Print(format!("└{}┘", "─".repeat(self.sweeper.get_width()))))?;
+        self.w.queue(Print(format!(
+            "└{}┘\n\r",
+            "─".repeat(self.sweeper.get_width() * 2 + 1)
+        )))?;
         self.w.flush()?;
         Ok(())
     }
 
     fn tear_down(&mut self) -> crossterm::Result<()> {
         disable_raw_mode()?;
-        self.w.execute(cursor::Show)?;
+        execute!(self.w, LeaveAlternateScreen, cursor::Show)?;
         Ok(())
     }
 }
