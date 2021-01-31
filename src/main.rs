@@ -146,6 +146,10 @@ impl<'a> Game<'a> {
         self.draw()?;
 
         loop {
+            match self.sweeper.game_state() {
+                SweeperState::Win | SweeperState::Lost => break,
+                _ => (),
+            }
             match read() {
                 Ok(event) => {
                     if let Key(ke) = event {
@@ -174,6 +178,11 @@ impl<'a> Game<'a> {
         }
 
         self.tear_down()?;
+        match self.sweeper.game_state() {
+            SweeperState::Win => println!("You win"),
+            SweeperState::Lost => println!("You lost"),
+            _ => println!("Game stopped"),
+        }
         self.draw()?;
         Ok(())
     }
