@@ -141,7 +141,7 @@ impl<'a> Game<'a> {
     }
 
     fn run(&mut self) -> crossterm::Result<()> {
-        execute!(self.w, cursor::Hide, EnterAlternateScreen)?;
+        execute!(self.w, EnterAlternateScreen, cursor::Hide)?;
         enable_raw_mode()?;
         self.draw()?;
 
@@ -244,7 +244,7 @@ impl<'a> Game<'a> {
 
     fn tear_down(&mut self) -> crossterm::Result<()> {
         disable_raw_mode()?;
-        execute!(self.w, LeaveAlternateScreen, cursor::Show)?;
+        execute!(self.w, cursor::Show, LeaveAlternateScreen)?;
         Ok(())
     }
 }
