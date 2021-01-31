@@ -201,15 +201,23 @@ impl<'a> Game<'a> {
                         }
                     },
                 };
-                if i_idx == self.i.index && j_idx == self.j.index {
-                    if cell_char == " " {
-                        self.w.queue(SetBackgroundColor(Color::Red))?;
-                    } else {
-                        self.w.queue(SetForegroundColor(Color::Red))?;
+                match self.sweeper.game_state() {
+                    SweeperState::Uninitialized | SweeperState::Playing => {
+                        if i_idx == self.i.index && j_idx == self.j.index {
+                            if cell_char == " " {
+                                self.w.queue(SetBackgroundColor(Color::Red))?;
+                            } else {
+                                self.w.queue(SetForegroundColor(Color::Red))?;
+                            }
+                        }
+                        queue!(self.w, Print(cell_char), ResetColor)?;
                     }
-                    queue!(self.w, Print(cell_char), ResetColor,)?;
-                } else {
-                    self.w.queue(Print(cell_char))?;
+                    SweeperState::Lost | SweeperState::Win => {
+                        if let CellKind::Mine = cell.kind {
+                            self.w.queue(SetForegroundColor(Color::Red))?;
+                        }
+                        queue!(self.w, Print(cell_char), ResetColor)?;
+                    }
                 }
                 if j_idx < row.len() - 1 {
                     self.w.queue(Print(" "))?;
