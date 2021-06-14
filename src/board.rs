@@ -19,14 +19,14 @@ pub enum SweeperState {
     Win,
 }
 
-pub struct Sweeper {
+pub struct Board {
     board: Vec<Vec<Cell>>,
     state: SweeperState,
     closed_cell: usize,
     mine_count: usize,
 }
 
-impl Sweeper {
+impl Board {
     pub fn new(config: SweeperConfig) -> Result<Self, Error> {
         if config.height < 9 || config.width < 9 {
             Err(Error::InvalidConfig)
@@ -37,7 +37,7 @@ impl Sweeper {
                 mine_count: 0,
                 mine_is_counted: false,
             };
-            Ok(Sweeper {
+            Ok(Board {
                 board: vec![vec![cell; config.width]; config.height],
                 state: SweeperState::Uninitialized,
                 closed_cell: config.width * config.height,
@@ -189,7 +189,7 @@ impl Sweeper {
     }
 }
 
-impl fmt::Debug for Sweeper {
+impl fmt::Debug for Board {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let mut debug_str = String::new();
         for row in &self.board {

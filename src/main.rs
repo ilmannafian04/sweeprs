@@ -19,7 +19,7 @@ use crossterm::{
 
 use sweeprs::{
     cell::{CellKind, CellState},
-    Sweeper, SweeperConfig, SweeperState, EASY_CONFIG, HARD_CONFIG, MED_CONFIG,
+    Board, SweeperConfig, SweeperState, EASY_CONFIG, HARD_CONFIG, MED_CONFIG,
 };
 
 fn main() {
@@ -82,7 +82,7 @@ fn main() {
     } else {
         EASY_CONFIG
     };
-    match Sweeper::new(config) {
+    match Board::new(config) {
         Ok(board) => {
             let mut stdout = BufWriter::new(stdout());
             Game::new(board, &mut stdout).run().ok();
@@ -120,12 +120,12 @@ impl SubAssign<usize> for BoundedIndex {
 pub struct Game<'a> {
     i: BoundedIndex,
     j: BoundedIndex,
-    sweeper: Sweeper,
+    sweeper: Board,
     w: &'a mut W,
 }
 
 impl<'a> Game<'a> {
-    fn new(sweeper: Sweeper, w: &'a mut W) -> Self {
+    fn new(sweeper: Board, w: &'a mut W) -> Self {
         Self {
             i: BoundedIndex {
                 index: 0,
