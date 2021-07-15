@@ -46,53 +46,45 @@ impl Board {
         }
     }
 
-    pub fn open(&mut self, i: usize, j: usize) -> Option<&CellKind> {
-        match self.board[i][j].state {
-            CellState::Closed => {
-                if let SweeperState::Uninitialized = self.state {
-                    self.initialize(i, j)
-                }
-                match self.board[i][j].kind {
-                    CellKind::Free => {
-                        let count = self.count_mine_in_nbrs(i, j);
-                        let cell = &mut self.board[i][j];
-                        cell.state = CellState::Open;
-                        cell.mine_count = count;
-                        cell.mine_is_counted = true;
-                        if count == 0 {
-                            for (nbr_i, nbr_j) in self.get_nbr_indices(i, j) {
-                                self.open(nbr_i, nbr_j);
-                            }
-                        }
-                        self.closed_cell -= 1;
-                        if self.closed_cell <= self.mine_count {
-                            self.state = SweeperState::Win;
-                        }
-                    }
-                    CellKind::Mine => {
-                        self.state = SweeperState::Lost;
-                        self.open_all_cell();
-                    }
-                    _ => (),
-                }
-                Some(&self.board[i][j].kind)
+    pub fn open(&mut self, i: usize, j: usize) -> &CellKind {
+        if let CellState::Closed = self.board[i][j].state {
+            if let SweeperState::Uninitialized = self.state {
+                self.initialize(i, j)
             }
-            _ => None,
+            match self.board[i][j].kind {
+                CellKind::Free => {
+                    let count = self.count_mine_in_nbrs(i, j);
+                    let cell = &mut self.board[i][j];
+                    cell.state = CellState::Open;
+                    cell.mine_count = count;
+                    cell.mine_is_counted = true;
+                    if count == 0 {
+                        for (nbr_i, nbr_j) in self.get_nbr_indices(i, j) {
+                            self.open(nbr_i, nbr_j);
+                        }
+                    }
+                    self.closed_cell -= 1;
+                    if self.closed_cell <= self.mine_count {
+                        self.state = SweeperState::Win;
+                    }
+                }
+                CellKind::Mine => {
+                    self.state = SweeperState::Lost;
+                    self.open_all_cell();
+                }
+                _ => (),
+            }
         }
+        &self.board[i][j].kind
     }
 
-    pub fn flag(&mut self, i: usize, j: usize) -> Option<&CellState> {
+    pub fn flag(&mut self, i: usize, j: usize) -> &CellState {
         match self.board[i][j].state {
-            CellState::Closed => {
-                self.board[i][j].state = CellState::Flagged;
-                Some(&self.board[i][j].state)
-            }
-            CellState::Flagged => {
-                self.board[i][j].state = CellState::Closed;
-                Some(&self.board[i][j].state)
-            }
-            _ => None,
+            CellState::Closed => self.board[i][j].state = CellState::Flagged,
+            CellState::Flagged => self.board[i][j].state = CellState::Closed,
+            _ => (),
         }
+        &self.board[i][j].state
     }
 
     pub fn game_state(&self) -> &SweeperState {
