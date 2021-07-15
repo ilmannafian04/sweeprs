@@ -1,4 +1,4 @@
-FROM rust:1.49-alpine3.12 as builder
+FROM ekidd/rust-musl-builder:stable as builder
 
 WORKDIR /app
 COPY . .
