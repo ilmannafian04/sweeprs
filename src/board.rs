@@ -46,7 +46,7 @@ impl Board {
         }
     }
 
-    pub fn open(&mut self, i: usize, j: usize) -> Option<CellKind> {
+    pub fn open(&mut self, i: usize, j: usize) -> Option<&CellKind> {
         match self.board[i][j].state {
             CellState::Closed => {
                 if let SweeperState::Uninitialized = self.state {
@@ -75,21 +75,21 @@ impl Board {
                     }
                     _ => (),
                 }
-                Some(self.board[i][j].kind.clone())
+                Some(&self.board[i][j].kind)
             }
             _ => None,
         }
     }
 
-    pub fn flag(&mut self, i: usize, j: usize) -> Option<CellState> {
+    pub fn flag(&mut self, i: usize, j: usize) -> Option<&CellState> {
         match self.board[i][j].state {
             CellState::Closed => {
                 self.board[i][j].state = CellState::Flagged;
-                Some(CellState::Flagged)
+                Some(&self.board[i][j].state)
             }
             CellState::Flagged => {
                 self.board[i][j].state = CellState::Closed;
-                Some(CellState::Closed)
+                Some(&self.board[i][j].state)
             }
             _ => None,
         }
