@@ -95,8 +95,8 @@ impl Board {
         }
     }
 
-    pub fn game_state(&self) -> SweeperState {
-        self.state.clone()
+    pub fn game_state(&self) -> &SweeperState {
+        &self.state
     }
 
     fn open_all_cell(&mut self) {
