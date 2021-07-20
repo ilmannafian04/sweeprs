@@ -24,7 +24,7 @@ use sweeprs::{
 
 fn main() {
     let matches = clap::App::new("sweeprs")
-        .version("0.1.0")
+        .version(env!("CARGO_PKG_VERSION"))
         .about("A terminal based minesweeper. Use arrow keys to move arround, `a` to open and `s` to flag a cell, `q` to quit the game.")
         .author("M. Ilman Nafian <milmannafian04@gmail.com>")
         .arg(
