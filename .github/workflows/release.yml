@@ -8,6 +8,7 @@ jobs:
   build:
     name: build the binary
     runs-on: Ubuntu-20.04
+    environment: prod
     strategy:
       matrix:
         include:
@@ -47,6 +48,7 @@ jobs:
     name: create github release
     runs-on: Ubuntu-20.04
     needs: build
+    environment: prod
     steps:
       - uses: actions/download-artifact@v2
       - name: create github release
