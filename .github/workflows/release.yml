@@ -8,7 +8,7 @@ jobs:
   image:
     name: docker image
     runs-on: Ubuntu-20.04
-    environment: prod
+    environment: docker
     env:
       APP: sweeprs
     steps:
@@ -43,7 +43,6 @@ jobs:
   build:
     name: binary
     runs-on: Ubuntu-20.04
-    environment: prod
     strategy:
       matrix:
         include:
