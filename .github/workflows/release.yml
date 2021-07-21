@@ -1,0 +1,60 @@
+name: Release
+on:
+  push:
+    tags:
+      - v*.*.*
+
+jobs:
+  build:
+    name: build the binary
+    runs-on: Ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            bin: sweeprs
+          - target: x86_64-pc-windows-gnu
+            bin: sweeprs.exe
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo
+      - name: setup rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - name: install windows target dependencies
+        if: ${{ matrix.target == x86_64-pc-windows-gnu }}
+        run: sudo apt install mingw-w64
+      - name: compile source
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: -p cli --release --target ${{ matrix.target }}
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.target }}
+          path: ./target/${{ matrix.target }}/release/${{ matrix.bin }}
+  gh_release:
+    name: create github release
+    runs-on: Ubuntu-20.04
+    needs: build
+    steps:
+      - uses: actions/download-artifact@v2
+      - name: create github release
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          draft: true
+          files: |
+            ./x86_64-unknown-linux-gnu/sweeprs
+            ./x86_64-pc-windows-gnu/sweeprs.exe
