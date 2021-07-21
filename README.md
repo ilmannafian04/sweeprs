@@ -1,5 +1,7 @@
 # sweeprs
 
+[![CI](https://github.com/ilmannafian04/sweeprs/actions/workflows/ci.yml/badge.svg)](https://github.com/ilmannafian04/sweeprs/actions/workflows/ci.yml)
+
 [![asciicast](https://asciinema.org/a/388134.svg)](https://asciinema.org/a/388134)
 
 A terminal based minesweeper built in rust.
