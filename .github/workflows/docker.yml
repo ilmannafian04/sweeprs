@@ -1,13 +1,14 @@
-name: deploy
+name: Docker Image
 on:
   push:
     tags:
       - v*.*.*
 
 jobs:
-  release-image:
+  image:
     name: release image
     runs-on: Ubuntu-20.04
+    environment: prod
     env:
       APP: sweeprs
     steps:
