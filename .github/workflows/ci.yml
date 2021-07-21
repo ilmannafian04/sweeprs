@@ -20,8 +20,8 @@ jobs:
       - name: setup rust toolchain
         uses: actions-rs/toolchain@v1
         with:
-            toolchain: stable
-            components: rustfmt, clippy
+          toolchain: stable
+          components: rustfmt, clippy
       - name: compile source
         uses: actions-rs/cargo@v1
         with:
