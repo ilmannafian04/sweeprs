@@ -78,8 +78,8 @@ jobs:
         with:
           name: ${{ matrix.target }}
           path: ./target/${{ matrix.target }}/release/${{ matrix.bin }}
-  gh_release:
-    name: github release
+  release:
+    name: release to gh and cratess
     runs-on: Ubuntu-20.04
     needs: build
     environment: prod
@@ -93,3 +93,16 @@ jobs:
           files: |
             ./x86_64-unknown-linux-gnu/sweeprs
             ./x86_64-pc-windows-gnu/sweeprs.exe
+      - name: setup rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: login to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: login
+          args: ${{ secrets.CRATES_IO_TOKEN }}
+      - name: publish crates
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
