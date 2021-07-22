@@ -22,24 +22,20 @@ pub struct Cell {
     pub mine_is_counted: bool,
 }
 
-pub trait Open {
+pub trait BoardCell {
     fn open(&mut self) -> &CellKind;
+
+    fn flag(&mut self) -> &CellState;
 }
 
-impl Open for Cell {
+impl BoardCell for Cell {
     fn open(&mut self) -> &CellKind {
         if let CellState::Closed = self.state {
             self.state = CellState::Opened
         }
         &self.kind
     }
-}
 
-pub trait Flag {
-    fn flag(&mut self) -> &CellState;
-}
-
-impl Flag for Cell {
     fn flag(&mut self) -> &CellState {
         match self.state {
             CellState::Closed => self.state = CellState::Flagged,
