@@ -1,6 +1,8 @@
 name: CI
 on:
   push:
+    branches:
+      - '*'
 
 jobs:
   clippy_and_test:
@@ -31,6 +33,16 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: run test
+        if: ${{ github.ref != 'refs/heads/main' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
+      - name: Run cargo-tarpaulin
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          args: --out Xml
+      - name: Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
