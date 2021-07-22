@@ -55,7 +55,7 @@ impl Board {
                 CellKind::Free => {
                     let count = self.count_mine_in_nbrs(i, j);
                     let cell = &mut self.board[i][j];
-                    cell.state = CellState::Open;
+                    cell.state = CellState::Opened;
                     cell.mine_count = count;
                     cell.mine_is_counted = true;
                     if count == 0 {
@@ -95,7 +95,7 @@ impl Board {
         for i in 0..self.get_height() {
             for j in 0..self.get_width() {
                 if let CellState::Closed = self.board[i][j].state {
-                    self.board[i][j].state = CellState::Open;
+                    self.board[i][j].state = CellState::Opened;
                     if !self.board[i][j].mine_is_counted {
                         let count = self.count_mine_in_nbrs(i, j);
                         self.board[i][j].mine_count = count;

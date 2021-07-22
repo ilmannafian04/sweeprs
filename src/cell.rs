@@ -11,7 +11,7 @@ pub enum CellKind {
 pub enum CellState {
     Closed,
     Flagged,
-    Open,
+    Opened,
 }
 
 #[derive(Clone)]
@@ -29,7 +29,7 @@ pub trait Open {
 impl Open for Cell {
     fn open(&mut self) -> &CellKind {
         if let CellState::Closed = self.state {
-            self.state = CellState::Open
+            self.state = CellState::Opened
         }
         &self.kind
     }
@@ -55,7 +55,7 @@ impl fmt::Debug for Cell {
         match self.state {
             CellState::Closed => f.write_str("O"),
             CellState::Flagged => f.write_str("F"),
-            CellState::Open => match self.kind {
+            CellState::Opened => match self.kind {
                 CellKind::Mine => f.write_str("X"),
                 CellKind::Free => {
                     if self.mine_is_counted && self.mine_count > 0 {
@@ -83,7 +83,7 @@ mod tests {
             mine_is_counted: true,
         };
         cell.open();
-        assert!(matches!(cell.state, CellState::Open));
+        assert!(matches!(cell.state, CellState::Opened));
     }
 
     #[test]
@@ -126,11 +126,11 @@ mod tests {
     fn flag_opened() {
         let mut cell = Cell {
             kind: CellKind::Free,
-            state: CellState::Open,
+            state: CellState::Opened,
             mine_count: 0,
             mine_is_counted: true,
         };
         cell.flag();
-        assert!(matches!(cell.state, CellState::Open));
+        assert!(matches!(cell.state, CellState::Opened));
     }
 }

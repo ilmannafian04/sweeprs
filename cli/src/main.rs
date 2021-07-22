@@ -198,7 +198,7 @@ impl<'a> Game<'a> {
                 let cell_char = match cell.state {
                     CellState::Closed => "█".to_owned(),
                     CellState::Flagged => "▒".to_owned(),
-                    CellState::Open => match cell.kind {
+                    CellState::Opened => match cell.kind {
                         CellKind::Uninitialized => "█".to_owned(),
                         CellKind::Mine => "●".to_owned(),
                         CellKind::Free => {
