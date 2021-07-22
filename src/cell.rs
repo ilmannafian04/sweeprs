@@ -70,63 +70,26 @@ impl fmt::Debug for Cell {
 mod tests {
     use super::*;
 
-    #[test]
-    fn open_closed() {
-        let mut cell = Cell {
-            kind: CellKind::Free,
-            state: CellState::Closed,
-            mine_count: 0,
-            mine_is_counted: true,
+    macro_rules! test_board_cell_trait {
+        ($func_name:ident, $state:expr, $func:ident, $expected:pat) => {
+            #[test]
+            fn $func_name() {
+                let mut cell = Cell {
+                    kind: CellKind::Free,
+                    state: $state,
+                    mine_count: 0,
+                    mine_is_counted: true,
+                };
+                cell.$func();
+                assert!(matches!(cell.state, $expected));
+            }
         };
-        cell.open();
-        assert!(matches!(cell.state, CellState::Opened));
     }
 
-    #[test]
-    fn open_flagged() {
-        let mut cell = Cell {
-            kind: CellKind::Free,
-            state: CellState::Flagged,
-            mine_count: 0,
-            mine_is_counted: true,
-        };
-        cell.open();
-        assert!(matches!(cell.state, CellState::Flagged));
-    }
-
-    #[test]
-    fn flag_closed() {
-        let mut cell = Cell {
-            kind: CellKind::Free,
-            state: CellState::Closed,
-            mine_count: 0,
-            mine_is_counted: true,
-        };
-        cell.flag();
-        assert!(matches!(cell.state, CellState::Flagged));
-    }
-
-    #[test]
-    fn flag_flagged() {
-        let mut cell = Cell {
-            kind: CellKind::Free,
-            state: CellState::Flagged,
-            mine_count: 0,
-            mine_is_counted: true,
-        };
-        cell.flag();
-        assert!(matches!(cell.state, CellState::Closed));
-    }
-
-    #[test]
-    fn flag_opened() {
-        let mut cell = Cell {
-            kind: CellKind::Free,
-            state: CellState::Opened,
-            mine_count: 0,
-            mine_is_counted: true,
-        };
-        cell.flag();
-        assert!(matches!(cell.state, CellState::Opened));
-    }
+    test_board_cell_trait!(open_closed, CellState::Closed, open, CellState::Opened);
+    test_board_cell_trait!(open_flagged, CellState::Flagged, open, CellState::Flagged);
+    test_board_cell_trait!(open_opened, CellState::Opened, open, CellState::Opened);
+    test_board_cell_trait!(flag_closed, CellState::Closed, flag, CellState::Flagged);
+    test_board_cell_trait!(flag_flagged, CellState::Flagged, flag, CellState::Closed);
+    test_board_cell_trait!(flag_opened, CellState::Opened, flag, CellState::Opened);
 }
