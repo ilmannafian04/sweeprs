@@ -41,8 +41,9 @@ jobs:
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: --out Xml
+          args: --workspace --lib --exclude-files cli/* --out Xml
       - name: Codecov
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
