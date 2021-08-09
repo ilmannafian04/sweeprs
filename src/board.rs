@@ -1,5 +1,3 @@
-use std::fmt;
-
 use rand::Rng;
 
 use crate::cell::{Cell, CellKind, CellState};
@@ -178,18 +176,5 @@ impl Board {
 
     pub fn get_board(&self) -> &Vec<Vec<Cell>> {
         &self.board
-    }
-}
-
-impl fmt::Debug for Board {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut debug_str = String::new();
-        for row in &self.board {
-            for cell in row {
-                debug_str.push_str(&format!("| {:?} ", cell));
-            }
-            debug_str.push_str("|\n");
-        }
-        f.write_str(&debug_str)
     }
 }

@@ -1,6 +1,4 @@
-use std::fmt;
-
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub enum CellKind {
     Mine,
     Free,
@@ -43,26 +41,6 @@ impl BoardCell for Cell {
             _ => ()
         }
         &self.state
-    }
-}
-
-impl fmt::Debug for Cell {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self.state {
-            CellState::Closed => f.write_str("O"),
-            CellState::Flagged => f.write_str("F"),
-            CellState::Opened => match self.kind {
-                CellKind::Mine => f.write_str("X"),
-                CellKind::Free => {
-                    if self.mine_is_counted && self.mine_count > 0 {
-                        f.write_str(&format!("{}", self.mine_count))
-                    } else {
-                        f.write_str(" ")
-                    }
-                }
-                CellKind::Uninitialized => f.write_str("/"),
-            },
-        }
     }
 }
 
