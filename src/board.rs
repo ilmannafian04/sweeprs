@@ -1,6 +1,9 @@
 use std::vec;
 
-use crate::cell::{BoardCell, Cell, CellKind, CellState};
+use crate::{
+    cell::{BoardCell, Cell, CellKind, CellState},
+    error::Error,
+};
 
 #[derive(Clone, Debug)]
 pub enum BoardState {
@@ -10,8 +13,11 @@ pub enum BoardState {
     Win,
 }
 
-pub trait SweeperBoard<T> {
-    fn new(width: usize, height: usize, mine_count: usize) -> Self;
+pub trait SweeperBoard<T>
+where
+    Self: Sized,
+{
+    fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error>;
 
     fn open(&mut self, i: usize, j: usize) -> &CellKind;
 
@@ -48,18 +54,21 @@ impl Board {
 }
 
 impl SweeperBoard<Cell> for Board {
-    fn new(width: usize, height: usize, mine_count: usize) -> Self {
+    fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error> {
+        if width < 9 || height < 9 || height * width - 9 < mine_count {
+            return Err(Error::InvalidConfig);
+        }
         let cell = Cell {
             kind: CellKind::Uninitialized,
             state: CellState::Closed,
             mine_count: 0,
             mine_is_counted: false,
         };
-        Self {
+        Ok(Self {
             cells: vec![vec![cell; width]; height],
             mine_count,
             state: BoardState::Uninitialized,
-        }
+        })
     }
 
     fn open(&mut self, i: usize, j: usize) -> &CellKind {
@@ -82,11 +91,23 @@ impl SweeperBoard<Cell> for Board {
 mod tests {
     use super::*;
 
+    #[test]
+    fn new_board() {
+        let valid = Board::new(9, 9, 10);
+        assert!(valid.is_ok());
+        let invalid_height = Board::new(8, 9, 10);
+        assert!(invalid_height.is_err());
+        let invalid_width = Board::new(9, 7, 10);
+        assert!(invalid_width.is_err());
+        let too_many_mines = Board::new(9, 9, 73);
+        assert!(too_many_mines.is_err());
+    }
+
     macro_rules! nbr_indices_test {
         ($func_name:ident, $i:expr, $j:expr, $expected:expr) => {
             #[test]
             fn $func_name() {
-                let board = Board::new(9, 9, 5);
+                let board = Board::new(9, 9, 5).unwrap();
                 let indices = board.get_nbr_indices($i, $j);
                 assert_eq!(indices, $expected)
             }
