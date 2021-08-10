@@ -9,8 +9,7 @@ use crate::{
 pub enum BoardState {
     Uninitialized,
     Playing,
-    Lost,
-    Win,
+    Finished,
 }
 
 pub trait SweeperBoard<T>
@@ -31,9 +30,14 @@ pub struct Board {
 }
 
 impl Board {
-    fn initialize(&mut self, i: usize, j: usize) {}
+    fn initialize(&mut self, i: usize, j: usize) {
+        self.cells[i][j].kind = CellKind::Free;
+        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+            self.cells[i][j].kind = CellKind::Free;
+        }
+    }
 
-    fn get_nbr_indices(self, i: usize, j: usize) -> Vec<(usize, usize)> {
+    fn get_nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
         let mut indices: Vec<(usize, usize)> = Vec::new();
         for i_offset in 0..3 {
             for j_offset in 0..3 {
@@ -72,14 +76,16 @@ impl SweeperBoard<Cell> for Board {
     }
 
     fn open(&mut self, i: usize, j: usize) -> &CellKind {
-        match self.cells[i][j].kind {
-            CellKind::Mine => todo!(),
-            CellKind::Free => todo!(),
-            CellKind::Uninitialized => {
+        if let CellState::Closed = self.cells[i][j].state {
+            if let BoardState::Uninitialized = self.state {
                 self.initialize(i, j);
-                &self.cells[i][j].kind
+                for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                    self.cells[i_nbr][j_nbr].state = CellState::Opened;
+                }
             }
+            self.cells[i][j].state = CellState::Opened;
         }
+        &self.cells[i][j].kind
     }
 
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
