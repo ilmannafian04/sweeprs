@@ -38,7 +38,7 @@ impl BoardCell for Cell {
         match self.state {
             CellState::Closed => self.state = CellState::Flagged,
             CellState::Flagged => self.state = CellState::Closed,
-            _ => ()
+            _ => (),
         }
         &self.state
     }
