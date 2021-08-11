@@ -32,6 +32,20 @@ pub struct Board {
     state: BoardState,
 }
 
+macro_rules! count_board_stat {
+    ($func_name:ident, $expected:pat, $field:ident) => {
+        fn $func_name(&self, i: usize, j: usize) -> usize {
+            let mut count = 0;
+            for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                if let $expected = self.cells[i_nbr][j_nbr].$field {
+                    count += 1;
+                }
+            }
+            count
+        }
+    };
+}
+
 impl Board {
     fn initialize(&mut self, i: usize, j: usize) {
         self.cells[i][j].kind = CellKind::Free;
@@ -74,25 +88,8 @@ impl Board {
         indices
     }
 
-    fn count_surrounding_mines(&self, i: usize, j: usize) -> usize {
-        let mut count = 0;
-        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
-            if let CellKind::Mine = self.cells[i_nbr][j_nbr].kind {
-                count += 1;
-            }
-        }
-        count
-    }
-
-    fn count_surrounding_flags(&self, i: usize, j: usize) -> usize {
-        let mut count = 0;
-        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
-            if let CellState::Flagged = self.cells[i_nbr][j_nbr].state {
-                count += 1;
-            }
-        }
-        count
-    }
+    count_board_stat!(count_surrounding_mines, CellKind::Mine, kind);
+    count_board_stat!(count_surrounding_flags, CellState::Flagged, state);
 }
 
 impl SweeperBoard<Cell> for Board {
