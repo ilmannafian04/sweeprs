@@ -23,6 +23,8 @@ where
     fn open(&mut self, i: usize, j: usize) -> &CellKind;
 
     fn flag(&mut self, i: usize, j: usize) -> &CellState;
+
+    fn state(&self) -> &BoardState;
 }
 
 pub struct Board {
@@ -82,6 +84,16 @@ impl Board {
         }
         count
     }
+
+    fn count_surrounding_flags(&self, i: usize, j: usize) -> usize {
+        let mut count = 0;
+        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+            if let CellState::Flagged = self.cells[i_nbr][j_nbr].state {
+                count += 1;
+            }
+        }
+        count
+    }
 }
 
 impl SweeperBoard<Cell> for Board {
@@ -106,19 +118,34 @@ impl SweeperBoard<Cell> for Board {
         if let BoardState::Uninitialized = self.state {
             self.initialize(i, j);
         }
-        if let CellState::Closed = self.cells[i][j].state {
-            self.cells[i][j].state = CellState::Opened;
-            if self.count_surrounding_mines(i, j) == 0 {
-                for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
-                    self.open(i_nbr, j_nbr);
+        match self.cells[i][j].state {
+            CellState::Closed => {
+                self.cells[i][j].state = CellState::Opened;
+                if self.count_surrounding_mines(i, j) == 0 {
+                    for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                        self.open(i_nbr, j_nbr);
+                    }
                 }
             }
+            CellState::Opened => {
+                let mine_count = self.count_surrounding_mines(i, j);
+                if mine_count > 0 && self.count_surrounding_flags(i, j) == mine_count {
+                    for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                        self.open(i_nbr, j_nbr);
+                    }
+                }
+            }
+            _ => (),
         }
         &self.cells[i][j].kind
     }
 
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
         self.cells[i][j].flag()
+    }
+
+    fn state(&self) -> &BoardState {
+        &self.state
     }
 }
 
