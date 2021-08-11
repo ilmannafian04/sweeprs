@@ -16,8 +16,6 @@ pub enum CellState {
 pub struct Cell {
     pub kind: CellKind,
     pub state: CellState,
-    pub mine_count: usize,
-    pub mine_is_counted: bool,
 }
 
 pub trait BoardCell {
@@ -55,8 +53,6 @@ mod tests {
                 let mut cell = Cell {
                     kind: CellKind::Free,
                     state: $state,
-                    mine_count: 0,
-                    mine_is_counted: true,
                 };
                 cell.$func();
                 assert!(matches!(cell.state, $expected));

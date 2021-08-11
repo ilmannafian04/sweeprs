@@ -19,7 +19,7 @@ use crossterm::{
 
 use sweeprs::{
     cell::{CellKind, CellState},
-    Board, SweeperConfig, SweeperState, EASY_CONFIG, HARD_CONFIG, MED_CONFIG,
+    Board, BoardState, SweeperBoard,
 };
 
 fn main() {
@@ -64,25 +64,32 @@ fn main() {
         )
         .group(ArgGroup::with_name("difficulty").args(&["easy", "medium", "hard", "custom"]))
         .get_matches();
-    let config = if matches.is_present("medium") {
-        MED_CONFIG
+    let height;
+    let width;
+    let mine_count;
+    if matches.is_present("medium") {
+        height = 16;
+        width = 16;
+        mine_count = 40;
     } else if matches.is_present("hard") {
-        HARD_CONFIG
+        height = 24;
+        width = 24;
+        mine_count = 99;
     } else if matches.is_present("custom") {
         let args: Vec<usize> = matches
             .values_of("custom")
             .unwrap()
             .map(|x| x.to_string().parse::<usize>().unwrap())
             .collect();
-        SweeperConfig {
-            width: args[0],
-            height: args[1],
-            mine_count: args[2],
-        }
+        height = args[0];
+        width = args[1];
+        mine_count = args[2];
     } else {
-        EASY_CONFIG
+        height = 9;
+        width = 9;
+        mine_count = 10;
     };
-    match Board::new(config) {
+    match Board::new(height, width, mine_count) {
         Ok(board) => {
             let mut stdout = BufWriter::new(stdout());
             Game::new(board, &mut stdout).run().ok();
@@ -129,11 +136,11 @@ impl<'a> Game<'a> {
         Self {
             i: BoundedIndex {
                 index: 0,
-                max: sweeper.get_height(),
+                max: sweeper.height(),
             },
             j: BoundedIndex {
                 index: 0,
-                max: sweeper.get_width(),
+                max: sweeper.width(),
             },
             sweeper,
             w,
@@ -146,9 +153,8 @@ impl<'a> Game<'a> {
         self.draw()?;
 
         loop {
-            match self.sweeper.game_state() {
-                SweeperState::Win | SweeperState::Lost => break,
-                _ => (),
+            if let BoardState::Finished(_) = self.sweeper.state() {
+                break;
             }
             match read() {
                 Ok(event) => {
@@ -178,9 +184,9 @@ impl<'a> Game<'a> {
         }
 
         self.tear_down()?;
-        match self.sweeper.game_state() {
-            SweeperState::Win => println!("You win"),
-            SweeperState::Lost => println!("You lost"),
+        match self.sweeper.state() {
+            BoardState::Finished(sweeprs::BoardResult::Win) => println!("You win"),
+            BoardState::Finished(sweeprs::BoardResult::Lost) => println!("You lost"),
             _ => println!("Game stopped"),
         }
         self.draw()?;
@@ -190,9 +196,9 @@ impl<'a> Game<'a> {
     fn draw(&mut self) -> crossterm::Result<()> {
         self.w.queue(Print(format!(
             "┌{}┐\n\r",
-            "─".repeat(self.sweeper.get_width() * 2 + 1)
+            "─".repeat(self.sweeper.width() * 2 + 1)
         )))?;
-        for (i_idx, row) in self.sweeper.get_board().iter().enumerate() {
+        for (i_idx, row) in self.sweeper.cells().iter().enumerate() {
             self.w.queue(Print("│ "))?;
             for (j_idx, cell) in row.iter().enumerate() {
                 let cell_char = match cell.state {
@@ -202,16 +208,17 @@ impl<'a> Game<'a> {
                         CellKind::Uninitialized => "█".to_owned(),
                         CellKind::Mine => "●".to_owned(),
                         CellKind::Free => {
-                            if !cell.mine_is_counted || cell.mine_count == 0 {
+                            let mine_count = self.sweeper.count_adjacent_mines(i_idx, j_idx);
+                            if mine_count == 0 {
                                 " ".to_owned()
                             } else {
-                                cell.mine_count.to_string()
+                                mine_count.to_string()
                             }
                         }
                     },
                 };
-                match self.sweeper.game_state() {
-                    SweeperState::Uninitialized | SweeperState::Playing => {
+                match self.sweeper.state() {
+                    BoardState::Uninitialized | BoardState::Playing => {
                         if i_idx == self.i.index && j_idx == self.j.index {
                             if cell_char == " " {
                                 self.w.queue(SetBackgroundColor(Color::Red))?;
@@ -221,7 +228,7 @@ impl<'a> Game<'a> {
                         }
                         queue!(self.w, Print(cell_char), ResetColor)?;
                     }
-                    SweeperState::Lost | SweeperState::Win => {
+                    BoardState::Finished(_) => {
                         if let CellKind::Mine = cell.kind {
                             self.w.queue(SetForegroundColor(Color::Red))?;
                         }
@@ -236,7 +243,7 @@ impl<'a> Game<'a> {
         }
         self.w.queue(Print(format!(
             "└{}┘\n\r",
-            "─".repeat(self.sweeper.get_width() * 2 + 1)
+            "─".repeat(self.sweeper.width() * 2 + 1)
         )))?;
         self.w.flush()?;
         Ok(())

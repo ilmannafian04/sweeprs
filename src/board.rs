@@ -7,33 +7,15 @@ use crate::{
     error::Error,
 };
 
+pub enum BoardResult {
+    Win,
+    Lost,
+}
+
 pub enum BoardState {
     Uninitialized,
     Playing,
-    Finished,
-}
-
-pub trait SweeperBoard<T>
-where
-    Self: Sized,
-{
-    fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error>;
-
-    fn open(&mut self, i: usize, j: usize) -> &CellKind;
-
-    fn flag(&mut self, i: usize, j: usize) -> &CellState;
-
-    fn state(&self) -> &BoardState;
-
-    fn height(&self) -> usize;
-
-    fn width(&self) -> usize;
-}
-
-pub struct Board {
-    cells: Vec<Vec<Cell>>,
-    mine_count: usize,
-    state: BoardState,
+    Finished(BoardResult),
 }
 
 macro_rules! count_board_stat {
@@ -48,6 +30,35 @@ macro_rules! count_board_stat {
             count
         }
     };
+}
+
+pub trait SweeperBoard<T>
+where
+    Self: Sized,
+    T: BoardCell,
+{
+    fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error>;
+
+    fn open(&mut self, i: usize, j: usize) -> &CellKind;
+
+    fn flag(&mut self, i: usize, j: usize) -> &CellState;
+
+    fn count_adjacent_mines(&self, i: usize, j: usize) -> usize;
+
+    fn state(&self) -> &BoardState;
+
+    fn cells(&self) -> &Vec<Vec<T>>;
+
+    fn height(&self) -> usize;
+
+    fn width(&self) -> usize;
+}
+
+pub struct Board {
+    cells: Vec<Vec<Cell>>,
+    mine_count: usize,
+    state: BoardState,
+    closed_cell_count: usize,
 }
 
 impl Board {
@@ -66,6 +77,7 @@ impl Board {
                 placed_mine += 1;
             }
         }
+        self.state = BoardState::Playing;
         self.cells.iter_mut().flatten().for_each(|cell| {
             if let CellKind::Uninitialized = cell.kind {
                 cell.kind = CellKind::Free;
@@ -92,7 +104,6 @@ impl Board {
         indices
     }
 
-    count_board_stat!(count_surrounding_mines, CellKind::Mine, kind);
     count_board_stat!(count_surrounding_flags, CellState::Flagged, state);
 }
 
@@ -104,13 +115,12 @@ impl SweeperBoard<Cell> for Board {
         let cell = Cell {
             kind: CellKind::Uninitialized,
             state: CellState::Closed,
-            mine_count: 0,
-            mine_is_counted: false,
         };
         Ok(Self {
             cells: vec![vec![cell; width]; height],
             mine_count,
             state: BoardState::Uninitialized,
+            closed_cell_count: width * height,
         })
     }
 
@@ -121,11 +131,12 @@ impl SweeperBoard<Cell> for Board {
         match self.cells[i][j].state {
             CellState::Closed => {
                 self.cells[i][j].state = CellState::Opened;
+                self.closed_cell_count -= 1;
                 if let CellKind::Mine = self.cells[i][j].kind {
-                    self.state = BoardState::Finished;
+                    self.state = BoardState::Finished(BoardResult::Lost);
                 }
                 if let BoardState::Playing = self.state {
-                    if self.count_surrounding_mines(i, j) == 0 {
+                    if self.count_adjacent_mines(i, j) == 0 {
                         for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
                             self.open(i_nbr, j_nbr);
                         }
@@ -133,14 +144,21 @@ impl SweeperBoard<Cell> for Board {
                 }
             }
             CellState::Opened => {
-                let mine_count = self.count_surrounding_mines(i, j);
+                let mine_count = self.count_adjacent_mines(i, j);
                 if mine_count > 0 && self.count_surrounding_flags(i, j) == mine_count {
                     for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
-                        self.open(i_nbr, j_nbr);
+                        if let CellState::Closed = self.cells[i_nbr][j_nbr].state {
+                            self.open(i_nbr, j_nbr);
+                        }
                     }
                 }
             }
             _ => (),
+        }
+        if let BoardState::Playing = self.state {
+            if self.mine_count == self.closed_cell_count {
+                self.state = BoardState::Finished(BoardResult::Win);
+            }
         }
         &self.cells[i][j].kind
     }
@@ -148,6 +166,8 @@ impl SweeperBoard<Cell> for Board {
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
         self.cells[i][j].flag()
     }
+
+    count_board_stat!(count_adjacent_mines, CellKind::Mine, kind);
 
     fn state(&self) -> &BoardState {
         &self.state
@@ -159,6 +179,10 @@ impl SweeperBoard<Cell> for Board {
 
     fn width(&self) -> usize {
         self.cells[0].len()
+    }
+
+    fn cells(&self) -> &Vec<Vec<Cell>> {
+        &self.cells
     }
 }
 
