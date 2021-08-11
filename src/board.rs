@@ -1,5 +1,7 @@
 use std::vec;
 
+use rand::Rng;
+
 use crate::{
     cell::{BoardCell, Cell, CellKind, CellState},
     error::Error,
@@ -35,6 +37,21 @@ impl Board {
         for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
             self.cells[i_nbr][j_nbr].kind = CellKind::Free;
         }
+        let mut placed_mine = 0;
+        let mut rng = rand::thread_rng();
+        while placed_mine < self.mine_count {
+            let i = rng.gen_range(0..self.cells.len());
+            let j = rng.gen_range(0..self.cells[0].len());
+            if let CellKind::Uninitialized = self.cells[i][j].kind {
+                self.cells[i][j].kind = CellKind::Mine;
+                placed_mine += 1;
+            }
+        }
+        self.cells.iter_mut().flatten().for_each(|cell| {
+            if let CellKind::Uninitialized = cell.kind {
+                cell.kind = CellKind::Free;
+            }
+        })
     }
 
     fn get_nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
