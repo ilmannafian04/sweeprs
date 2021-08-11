@@ -33,7 +33,7 @@ impl Board {
     fn initialize(&mut self, i: usize, j: usize) {
         self.cells[i][j].kind = CellKind::Free;
         for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
-            self.cells[i][j].kind = CellKind::Free;
+            self.cells[i_nbr][j_nbr].kind = CellKind::Free;
         }
     }
 
@@ -54,6 +54,16 @@ impl Board {
             }
         }
         indices
+    }
+
+    fn count_surrounding_mines(&self, i: usize, j: usize) -> usize {
+        let mut count = 0;
+        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+            if let CellKind::Mine = self.cells[i_nbr][j_nbr].kind {
+                count += 1;
+            }
+        }
+        count
     }
 }
 
@@ -76,14 +86,16 @@ impl SweeperBoard<Cell> for Board {
     }
 
     fn open(&mut self, i: usize, j: usize) -> &CellKind {
+        if let BoardState::Uninitialized = self.state {
+            self.initialize(i, j);
+        }
         if let CellState::Closed = self.cells[i][j].state {
-            if let BoardState::Uninitialized = self.state {
-                self.initialize(i, j);
+            self.cells[i][j].state = CellState::Opened;
+            if self.count_surrounding_mines(i, j) == 0 {
                 for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
-                    self.cells[i_nbr][j_nbr].state = CellState::Opened;
+                    self.open(i_nbr, j_nbr);
                 }
             }
-            self.cells[i][j].state = CellState::Opened;
         }
         &self.cells[i][j].kind
     }
