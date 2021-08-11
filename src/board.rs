@@ -24,6 +24,10 @@ where
     fn flag(&mut self, i: usize, j: usize) -> &CellState;
 
     fn state(&self) -> &BoardState;
+
+    fn height(&self) -> usize;
+
+    fn width(&self) -> usize;
 }
 
 pub struct Board {
@@ -36,7 +40,7 @@ macro_rules! count_board_stat {
     ($func_name:ident, $expected:pat, $field:ident) => {
         fn $func_name(&self, i: usize, j: usize) -> usize {
             let mut count = 0;
-            for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+            for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
                 if let $expected = self.cells[i_nbr][j_nbr].$field {
                     count += 1;
                 }
@@ -49,14 +53,14 @@ macro_rules! count_board_stat {
 impl Board {
     fn initialize(&mut self, i: usize, j: usize) {
         self.cells[i][j].kind = CellKind::Free;
-        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+        for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
             self.cells[i_nbr][j_nbr].kind = CellKind::Free;
         }
         let mut placed_mine = 0;
         let mut rng = rand::thread_rng();
         while placed_mine < self.mine_count {
-            let i = rng.gen_range(0..self.cells.len());
-            let j = rng.gen_range(0..self.cells[0].len());
+            let i = rng.gen_range(0..self.height());
+            let j = rng.gen_range(0..self.width());
             if let CellKind::Uninitialized = self.cells[i][j].kind {
                 self.cells[i][j].kind = CellKind::Mine;
                 placed_mine += 1;
@@ -69,16 +73,16 @@ impl Board {
         })
     }
 
-    fn get_nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
+    fn nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
         let mut indices: Vec<(usize, usize)> = Vec::new();
         for i_offset in 0..3 {
             for j_offset in 0..3 {
                 let i_nbr = i + i_offset;
                 let j_nbr = j + j_offset;
                 if 0 < i_nbr
-                    && i_nbr <= self.cells.len()
+                    && i_nbr <= self.height()
                     && 0 < j_nbr
-                    && j_nbr <= self.cells[0].len()
+                    && j_nbr <= self.width()
                     && (i_nbr, j_nbr) != (i + 1, j + 1)
                 {
                     indices.push((i_nbr - 1, j_nbr - 1));
@@ -122,7 +126,7 @@ impl SweeperBoard<Cell> for Board {
                 }
                 if let BoardState::Playing = self.state {
                     if self.count_surrounding_mines(i, j) == 0 {
-                        for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                        for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
                             self.open(i_nbr, j_nbr);
                         }
                     }
@@ -131,7 +135,7 @@ impl SweeperBoard<Cell> for Board {
             CellState::Opened => {
                 let mine_count = self.count_surrounding_mines(i, j);
                 if mine_count > 0 && self.count_surrounding_flags(i, j) == mine_count {
-                    for (i_nbr, j_nbr) in self.get_nbr_indices(i, j) {
+                    for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
                         self.open(i_nbr, j_nbr);
                     }
                 }
@@ -147,6 +151,14 @@ impl SweeperBoard<Cell> for Board {
 
     fn state(&self) -> &BoardState {
         &self.state
+    }
+
+    fn height(&self) -> usize {
+        self.cells.len()
+    }
+
+    fn width(&self) -> usize {
+        self.cells[0].len()
     }
 }
 
@@ -171,7 +183,7 @@ mod tests {
             #[test]
             fn $func_name() {
                 let board = Board::new(9, 9, 5).unwrap();
-                let indices = board.get_nbr_indices($i, $j);
+                let indices = board.nbr_indices($i, $j);
                 assert_eq!(indices, $expected)
             }
         };
