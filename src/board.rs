@@ -18,20 +18,6 @@ pub enum BoardState {
     Finished(BoardResult),
 }
 
-macro_rules! count_board_stat {
-    ($func_name:ident, $expected:pat, $field:ident) => {
-        fn $func_name(&self, i: usize, j: usize) -> usize {
-            let mut count = 0;
-            for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
-                if let $expected = self.cells[i_nbr][j_nbr].$field {
-                    count += 1;
-                }
-            }
-            count
-        }
-    };
-}
-
 pub trait SweeperBoard<T>
 where
     Self: Sized,
@@ -42,8 +28,6 @@ where
     fn open(&mut self, i: usize, j: usize) -> &CellKind;
 
     fn flag(&mut self, i: usize, j: usize) -> &CellState;
-
-    fn count_adjacent_mines(&self, i: usize, j: usize) -> usize;
 
     fn state(&self) -> &BoardState;
 
@@ -59,6 +43,20 @@ pub struct Board {
     mine_count: usize,
     state: BoardState,
     closed_cell_count: usize,
+}
+
+macro_rules! count_board_stat {
+    ($visibility:vis, $func_name:ident, $expected:pat, $field:ident) => {
+        $visibility fn $func_name(&self, i: usize, j: usize) -> usize {
+            let mut count = 0;
+            for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
+                if let $expected = self.cells[i_nbr][j_nbr].$field {
+                    count += 1;
+                }
+            }
+            count
+        }
+    };
 }
 
 impl Board {
@@ -104,7 +102,8 @@ impl Board {
         indices
     }
 
-    count_board_stat!(count_surrounding_flags, CellState::Flagged, state);
+    count_board_stat!(pub, count_adjacent_mines, CellKind::Mine, kind);
+    count_board_stat!(, count_surrounding_flags, CellState::Flagged, state);
 }
 
 impl SweeperBoard<Cell> for Board {
@@ -166,8 +165,6 @@ impl SweeperBoard<Cell> for Board {
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
         self.cells[i][j].flag()
     }
-
-    count_board_stat!(count_adjacent_mines, CellKind::Mine, kind);
 
     fn state(&self) -> &BoardState {
         &self.state
