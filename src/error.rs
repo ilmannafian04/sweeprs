@@ -2,13 +2,15 @@ use std::fmt;
 
 #[derive(Debug)]
 pub enum Error {
-    InvalidConfig,
+    InvalidConfigError,
+    IndexOutOfBoundError,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Error::InvalidConfig => f.write_str("board configuration is invalid"),
+            Error::InvalidConfigError => f.write_str("board configuration is invalid"),
+            Error::IndexOutOfBoundError => f.write_str("index is out of bound"),
         }
     }
 }

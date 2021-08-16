@@ -27,7 +27,11 @@ where
 
     fn open(&mut self, i: usize, j: usize) -> &CellKind;
 
+    fn open_save(&mut self, i: usize, j: usize) -> Result<&CellKind, Error>;
+
     fn flag(&mut self, i: usize, j: usize) -> &CellState;
+
+    fn flag_save(&mut self, i: usize, j: usize) -> Result<&CellState, Error>;
 
     fn state(&self) -> &BoardState;
 
@@ -106,10 +110,22 @@ impl Board {
     count_board_stat!(, count_surrounding_flags, CellState::Flagged, state);
 }
 
+macro_rules! save_op {
+    ($func_name:ident, $op:ident, $return_type:ident) => {
+        fn $func_name(&mut self, i: usize, j: usize) -> Result<&$return_type, Error> {
+            if i < self.height() && j < self.width() {
+                Ok(self.$op(i, j))
+            } else {
+                Err(Error::IndexOutOfBoundError)
+            }
+        }
+    };
+}
+
 impl SweeperBoard<Cell> for Board {
     fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error> {
         if width < 9 || height < 9 || height * width - 9 < mine_count {
-            return Err(Error::InvalidConfig);
+            return Err(Error::InvalidConfigError);
         }
         let cell = Cell {
             kind: CellKind::Uninitialized,
@@ -162,9 +178,13 @@ impl SweeperBoard<Cell> for Board {
         &self.cells[i][j].kind
     }
 
+    save_op!(open_save, open, CellKind);
+
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
         self.cells[i][j].flag()
     }
+
+    save_op!(flag_save, flag, CellState);
 
     fn state(&self) -> &BoardState {
         &self.state
