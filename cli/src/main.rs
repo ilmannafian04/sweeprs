@@ -17,10 +17,7 @@ use crossterm::{
     QueueableCommand,
 };
 
-use sweeprs::{
-    cell::{CellKind, CellState},
-    Board, BoardState, SweeperBoard,
-};
+use sweeprs::{Board, BoardState, CellKind, CellState, SweeperBoard};
 
 fn main() {
     let matches = clap::App::new("sweeprs")
