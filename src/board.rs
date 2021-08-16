@@ -208,6 +208,68 @@ mod tests {
     use super::*;
 
     #[test]
+    fn open_cell() {
+        let mut board = Board::new(9, 9, 10).unwrap();
+        board.open(4, 4);
+
+        // check surrounding initial
+        for (i_nbr, j_nbr) in board.nbr_indices(4, 4) {
+            assert!(matches!(board.cells[i_nbr][j_nbr].kind, CellKind::Free));
+        }
+
+        // check opened cell is a free cell
+        for cell in board.cells.iter().flatten() {
+            if let CellState::Opened = cell.state {
+                assert!(matches!(cell.kind, CellKind::Free))
+            }
+        }
+    }
+
+    #[test]
+    fn init_board() {
+        let mut board = Board::new(9, 9, 10).unwrap();
+        let mut mine_count = 0;
+        let mut uninitialized_cell = 0;
+        for cell in board.cells().iter().flatten() {
+            match cell.kind {
+                CellKind::Mine => mine_count += 1,
+                CellKind::Uninitialized => uninitialized_cell += 1,
+                _ => (),
+            }
+        }
+        assert_eq!(mine_count, 0);
+        assert_eq!(uninitialized_cell, 81);
+        board.initialize(4, 4);
+        mine_count = 0;
+        uninitialized_cell = 0;
+        for cell in board.cells().iter().flatten() {
+            match cell.kind {
+                CellKind::Mine => mine_count += 1,
+                CellKind::Uninitialized => uninitialized_cell += 1,
+                _ => (),
+            }
+        }
+        assert_eq!(mine_count, 10);
+        assert_eq!(uninitialized_cell, 0);
+    }
+
+    #[test]
+    fn dimension() {
+        let board = Board::new(9, 9, 10).unwrap();
+        assert_eq!(board.width(), 9);
+        assert_eq!(board.height(), 9);
+    }
+
+    #[test]
+    fn out_of_bound() {
+        let mut board = Board::new(9, 9, 10).unwrap();
+        assert!(board.open_save(10, 0).is_err());
+        assert!(board.open_save(0, 10).is_err());
+        assert!(board.flag_save(10, 0).is_err());
+        assert!(board.flag_save(0, 10).is_err());
+    }
+
+    #[test]
     fn new_board() {
         let valid = Board::new(9, 9, 10);
         assert!(valid.is_ok());
