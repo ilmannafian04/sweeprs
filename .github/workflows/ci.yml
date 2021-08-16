@@ -33,10 +33,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           args: --workspace
-      - name: run test
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
