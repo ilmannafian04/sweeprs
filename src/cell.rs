@@ -1,3 +1,4 @@
+/// Indicate what the mine contain
 #[derive(Clone)]
 pub enum CellKind {
     Mine,
@@ -5,6 +6,7 @@ pub enum CellKind {
     Uninitialized,
 }
 
+/// Hold the state of the cell
 #[derive(Clone)]
 pub enum CellState {
     Closed,
@@ -12,18 +14,21 @@ pub enum CellState {
     Opened,
 }
 
+/// Default cell struct
 #[derive(Clone)]
 pub struct Cell {
     pub kind: CellKind,
     pub state: CellState,
 }
 
+/// Cell trait
 pub trait BoardCell {
     fn open(&mut self) -> &CellKind;
 
     fn flag(&mut self) -> &CellState;
 }
 
+/// Default implementation of the cell trait
 impl BoardCell for Cell {
     fn open(&mut self) -> &CellKind {
         if let CellState::Closed = self.state {

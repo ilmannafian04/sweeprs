@@ -1,5 +1,6 @@
 use std::fmt;
 
+/// General error type
 #[derive(Debug)]
 pub enum Error {
     InvalidConfigError,
