@@ -36,10 +36,6 @@ where
     fn state(&self) -> &BoardState;
 
     fn cells(&self) -> &Vec<Vec<T>>;
-
-    fn height(&self) -> usize;
-
-    fn width(&self) -> usize;
 }
 
 pub struct Board {
@@ -104,6 +100,14 @@ impl Board {
             }
         }
         indices
+    }
+
+    pub fn height(&self) -> usize {
+        self.cells.len()
+    }
+
+    pub fn width(&self) -> usize {
+        self.cells[0].len()
     }
 
     count_board_stat!(pub, count_adjacent_mines, CellKind::Mine, kind);
@@ -188,14 +192,6 @@ impl SweeperBoard<Cell> for Board {
 
     fn state(&self) -> &BoardState {
         &self.state
-    }
-
-    fn height(&self) -> usize {
-        self.cells.len()
-    }
-
-    fn width(&self) -> usize {
-        self.cells[0].len()
     }
 
     fn cells(&self) -> &Vec<Vec<Cell>> {
