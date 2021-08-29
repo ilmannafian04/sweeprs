@@ -38,6 +38,7 @@ where
     fn cells(&self) -> &Vec<Vec<T>>;
 }
 
+/// Default implementation of the SweeperBoard trait
 pub struct Board {
     cells: Vec<Vec<Cell>>,
     mine_count: usize,
@@ -59,7 +60,11 @@ macro_rules! count_board_stat {
     };
 }
 
+/// Helper methods to help implement the trait
 impl Board {
+    /// Initially, the cells are all unitialized. After the first
+    /// Cell has been opened, the cell and all of its neighboring
+    /// cells are set as free cell.
     fn initialize(&mut self, i: usize, j: usize) {
         self.cells[i][j].kind = CellKind::Free;
         for (i_nbr, j_nbr) in self.nbr_indices(i, j) {
@@ -83,6 +88,8 @@ impl Board {
         })
     }
 
+    /// Returs an array of tupple containing the index of neighboring
+    /// cells starting from left to right, top to bottom.
     fn nbr_indices(&self, i: usize, j: usize) -> Vec<(usize, usize)> {
         let mut indices: Vec<(usize, usize)> = Vec::new();
         for i_offset in 0..3 {
@@ -102,10 +109,13 @@ impl Board {
         indices
     }
 
+    /// A convenient alias from `self.cells.len()`.
     pub fn height(&self) -> usize {
         self.cells.len()
     }
 
+    /// A convenient alias from `self.cells[0].len()`. Guarateed to
+    /// return because the height of the board is never less than 9.
     pub fn width(&self) -> usize {
         self.cells[0].len()
     }
@@ -127,6 +137,10 @@ macro_rules! save_op {
 }
 
 impl SweeperBoard<Cell> for Board {
+    /// Create a new minesweeper board. `height` and `width` cannot be under 9,
+    /// while `mine_count` cannot exceed `height * width - 9` since the initial
+    /// cell and its neighbors must be a free cell. Return error if given invalid
+    /// configuration.
     fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error> {
         if width < 9 || height < 9 || height * width - 9 < mine_count {
             return Err(Error::InvalidConfigError);
@@ -143,6 +157,11 @@ impl SweeperBoard<Cell> for Board {
         })
     }
 
+    /// Open a cell, propagate if all neighboring cell is a free cell.
+    /// Opening an opened cell will propagate if flagged cell count is
+    /// equal to surrounding mine count.
+    ///
+    /// Propagation is stopped when propagation reached a mine cell.
     fn open(&mut self, i: usize, j: usize) -> &CellKind {
         if let BoardState::Uninitialized = self.state {
             self.initialize(i, j);
@@ -184,6 +203,9 @@ impl SweeperBoard<Cell> for Board {
 
     save_op!(open_save, open, CellKind);
 
+    /// Flag a cell. Flagged cell cannot be opened until unflagged.
+    /// Remove the flag by flagging a flagged cell again. Flagged cell
+    /// counts toward opening an opened cell propagation.
     fn flag(&mut self, i: usize, j: usize) -> &CellState {
         self.cells[i][j].flag()
     }
