@@ -22,14 +22,14 @@ pub struct Cell {
 }
 
 /// Cell trait
-pub trait BoardCell {
+pub trait SweeperCell {
     fn open(&mut self) -> &CellKind;
 
     fn flag(&mut self) -> &CellState;
 }
 
 /// Default implementation of the cell trait
-impl BoardCell for Cell {
+impl SweeperCell for Cell {
     fn open(&mut self) -> &CellKind {
         if let CellState::Closed = self.state {
             self.state = CellState::Opened

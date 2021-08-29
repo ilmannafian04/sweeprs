@@ -3,7 +3,7 @@ use std::vec;
 use rand::Rng;
 
 use crate::{
-    cell::{BoardCell, Cell, CellKind, CellState},
+    cell::{Cell, CellKind, CellState, SweeperCell},
     error::Error,
 };
 
@@ -21,7 +21,7 @@ pub enum BoardState {
 pub trait SweeperBoard<T>
 where
     Self: Sized,
-    T: BoardCell,
+    T: SweeperCell,
 {
     fn new(height: usize, width: usize, mine_count: usize) -> Result<Self, Error>;
 
