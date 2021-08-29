@@ -2,12 +2,12 @@ name: CI
 on:
   push:
     branches:
-      - '*'
+      - "*"
 
 jobs:
   clippy_and_test:
     name: run clippy and test
-    runs-on: Ubuntu-20.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
@@ -32,18 +32,13 @@ jobs:
         uses: actions-rs/clippy-check@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: run test
-        if: ${{ github.ref != 'refs/heads/main' }}
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
+          args: --workspace
       - name: Run cargo-tarpaulin
-        if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions-rs/tarpaulin@v0.1
         with:
           args: --workspace --lib --exclude-files cli/* --out Xml
+          version: latest
       - name: Codecov
-        if: ${{ github.ref == 'refs/heads/main' }}
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -1,3 +1,4 @@
+/// Indicate what the mine contain
 #[derive(Clone)]
 pub enum CellKind {
     Mine,
@@ -5,6 +6,7 @@ pub enum CellKind {
     Uninitialized,
 }
 
+/// Hold the state of the cell
 #[derive(Clone)]
 pub enum CellState {
     Closed,
@@ -12,21 +14,22 @@ pub enum CellState {
     Opened,
 }
 
+/// Default cell struct
 #[derive(Clone)]
 pub struct Cell {
     pub kind: CellKind,
     pub state: CellState,
-    pub mine_count: usize,
-    pub mine_is_counted: bool,
 }
 
-pub trait BoardCell {
+/// Cell trait
+pub trait SweeperCell {
     fn open(&mut self) -> &CellKind;
 
     fn flag(&mut self) -> &CellState;
 }
 
-impl BoardCell for Cell {
+/// Default implementation of the cell trait
+impl SweeperCell for Cell {
     fn open(&mut self) -> &CellKind {
         if let CellState::Closed = self.state {
             self.state = CellState::Opened
@@ -55,8 +58,6 @@ mod tests {
                 let mut cell = Cell {
                     kind: CellKind::Free,
                     state: $state,
-                    mine_count: 0,
-                    mine_is_counted: true,
                 };
                 cell.$func();
                 assert!(matches!(cell.state, $expected));

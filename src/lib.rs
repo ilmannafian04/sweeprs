@@ -1,21 +1,24 @@
+//! sweeprs is a minesweeper engine written in rust.
+//!
+//! Example:
+//!
+//! ```
+//! use sweeprs::{Board, BoardState, BoardResult};
+//!
+//! let mut board = Board::new(9, 9, 10);
+//! board.open(4, 4);
+//! board.flag(0, 0);
+//! match board.state() {
+//!     BoardState::Playing => println!("Keep going!"),
+//!     BoardState::Finished(BoardResult::Win) => println!("You win!").
+//!     _ => (),
+//! }
+//! ```
+
 mod board;
-pub mod cell;
-pub mod error;
+mod cell;
+mod error;
 
-// pub use board::{Board, SweeperConfig, SweeperState};
-
-// pub const EASY_CONFIG: SweeperConfig = SweeperConfig {
-//     height: 9,
-//     width: 9,
-//     mine_count: 10,
-// };
-// pub const MED_CONFIG: SweeperConfig = SweeperConfig {
-//     height: 16,
-//     width: 16,
-//     mine_count: 40,
-// };
-// pub const HARD_CONFIG: SweeperConfig = SweeperConfig {
-//     height: 24,
-//     width: 24,
-//     mine_count: 99,
-// };
+pub use board::*;
+pub use cell::*;
+pub use error::*;
