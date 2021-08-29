@@ -6,7 +6,7 @@ edition = "2018"
 description = "Sweeprs is a minesweeper engine library built using rust"
 repository = "https://github.com/ilmannafian04/sweeprs"
 homepage = "https://github.com/ilmannafian04/sweeprs"
-license-file = "MIT"
+license = "MIT"
 readme = "./README.md"
 include = [
     "**/*.rs",
