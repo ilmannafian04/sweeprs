@@ -1,26 +1,3 @@
-[package]
-name = "sweeprs"
-version = "0.2.0"
-authors = ["M Ilman Nafian <milmannafian04@gmail.com>"]
-edition = "2018"
-description = "Sweeprs is a minesweeper engine library built using rust"
-repository = "https://github.com/ilmannafian04/sweeprs"
-homepage = "https://github.com/ilmannafian04/sweeprs"
-license = "MIT"
-readme = "./README.md"
-include = [
-    "**/*.rs",
-    "Cargo.toml",
-    "README.md"
-]
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[dependencies]
-rand = "0.8"
-
 [workspace]
-members = [
-    ".",
-    "cli"
-]
+resolver = "2"
+members = [".", "cli", "sweeprs"]
